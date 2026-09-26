@@ -9,11 +9,23 @@ npm run build   # dist/ 생성
 
 `dist/` 통째로 업로드. 환경변수 없음. HTTPS 필수 (카메라·PWA).
 
-- 참고: dist 약 2.6MB (tfjs+MediaPipe 포함, workbox precache 4MiB 설정)
+- 참고: dist 약 5.8MB (pose_landmarker 모델 포함, precache 12 entries)
+- 주 번들 약 170KB (MediaPipe tasks-vision 래퍼 포함, wasm은 CDN에서 로드)
 
 ## GitHub Pages
 
-`vite.config.ts`에 `base: '/<repo>/'` 추가 후 build, `dist/`를 `gh-pages` 브랜치에 푸시.
+`vite.config.ts`에 `base: '/skeleton-versus/'` 설정 후 build,
+`dist/`를 `gh-pages` 브랜치에 푸시.
+
+```bash
+git worktree add /tmp/vs-ghpages gh-pages
+find /tmp/vs-ghpages -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+cp -R dist/. /tmp/vs-ghpages/
+git -C /tmp/vs-ghpages add -A
+git -C /tmp/vs-ghpages commit -m "deploy <버전>"
+git -C /tmp/vs-ghpages push origin gh-pages
+git worktree remove --force /tmp/vs-ghpages
+```
 
 ## Cloudflare Pages
 
@@ -21,8 +33,9 @@ npm run build   # dist/ 생성
 
 ## 학교 인트라넷
 
-`dist/`를 내부 웹서버에 복사. 포즈 모델(MoveNet + pose_landmarker)은
+`dist/`를 내부 웹서버에 복사. 포즈 모델(pose_landmarker)은
 `dist/models/`에 동봉되어 Service Worker가 첫 방문에 precache하므로,
-TFHub·googleapis 차단 망에서도 동작. 유일한 외부 의존성은
-`@mediapipe/tasks-vision` wasm (jsdelivr, ABC 게임 첫 실행 시 1회).
-완전 오프라인이 필요하면 wasm 파일도 내부 경로에 두고 어댑터 URL 교체.
+외부 차단 망에서도 모델은 동작. 유일한 외부 의존성은
+`@mediapipe/tasks-vision` wasm (jsdelivr, 첫 실행 시 1회).
+완전 오프라인이 필요하면 wasm 파일도 내부 경로에 두고
+`src/pose/mediapipe-dual.ts`의 URL을 교체.

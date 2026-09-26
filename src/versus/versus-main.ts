@@ -4,6 +4,7 @@ import { AttackBus } from './attack';
 import { VersusLoop } from './versus-loop';
 import { splitPoses } from './split';
 import { calibrateDual } from './dual-calibration';
+import { recordLabel, saveResult, type Winner } from './record';
 import type { PoseFrame } from '../pose/types';
 import { loadDualEngine } from '../pose/mediapipe-dual';
 import { FruitDuelSide, SharedFruitPattern } from '../versus-games/fruit-duel';
@@ -200,20 +201,22 @@ export async function startVersus(app: HTMLElement, id: VersusId): Promise<void>
     onTimeUp: () => {
       const result = document.getElementById('result');
       if (!result) return;
-      let title: string;
+      let winner: Winner;
       if (id === 'versus-tug' && rope) {
-        const w = rope.winner();
-        title = w === 'p1' ? 'P1 승리!' : w === 'p2' ? 'P2 승리!' : '무승부!';
+        winner = rope.winner();
       } else {
         const lScore = (left as unknown as { board: { score: number } }).board.score;
         const rScore = (right as unknown as { board: { score: number } }).board.score;
-        title = lScore > rScore ? 'P1 승리!' : rScore > lScore ? 'P2 승리!' : '무승부!';
+        winner = lScore > rScore ? 'p1' : rScore > lScore ? 'p2' : 'draw';
       }
+      const title = winner === 'p1' ? 'P1 승리!' : winner === 'p2' ? 'P2 승리!' : '무승부!';
+      const rec = saveResult(id, winner);
       const lScore = (left as unknown as { board: { score: number } }).board.score;
       const rScore = (right as unknown as { board: { score: number } }).board.score;
       result.innerHTML =
         `<p><strong>${title}</strong></p>` +
         `<p>P1 ${lScore} : ${rScore} P2</p>` +
+        `<p>${recordLabel(rec)}</p>` +
         `<button type="button" id="again" class="btn btn-pulse">다시 대전</button>`;
       result.hidden = false;
       result.querySelector('#again')?.addEventListener('click', () => {

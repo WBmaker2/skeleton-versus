@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.0 (2026-09-26) — 전적·파티클·절전·문서 정리
+
+- 대전 전적: 종목별 P1승·P2승·무 저장 (`versus/record.ts`, localStorage `skelversus:record:`), 결과 화면에 전적 1줄 표시
+- 파티클 연출: 베기·정답·박자에 축하 burst, 5콤보 마일스톤, 폭탄은 붉은 burst+화면 흔들림 (`versus/particles.ts`, VersusLoop 내장)
+- 저사양 절전: fps 이동평균 측정·우하단 표시, 25fps 미만 3초 시 추론 반으로+파티클 절반, 30fps 회복 시 원복
+- 앉음 안내: 과일·수학 help에 "앉아서도 가능", 줄다리기는 "서서만" 명시, QA 문서에 실측 행 추가
+- 문서 정리: `PREDEPLOY.md`·`DEPLOY.md`를 versus 실측으로 갱신 (base·71 tests·5.8MB·pose task), `PLAN-0.4.0.md` 기록
+- reduced-motion: 파티클 0개 (shake는 기존 CSS가 끔)
+- 테스트 11개 추가 · 전체 82개 통과 · 빌드 성공 (precache 12개 유지)
+
 ## 0.3.0 (2026-09-26) — 1인 코드 제거·랜딩·QA 문서
 
 - 1인 12종 코드 제거: `src/games`·1인 루프·저장소·MoveNet/TF 어댑터·관리자·리더보드·1인 테스트 삭제, 대전만 남김
