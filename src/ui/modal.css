@@ -1,0 +1,128 @@
+/* 공용 모달: 데스크톱 중앙 시트, 모바일 바텀시트. 토큰은 theme.css. */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--lp-space-4);
+  box-sizing: border-box;
+  background: rgba(20, 28, 36, 0.55);
+}
+
+.modal {
+  width: min(100%, 560px);
+  max-height: min(80dvh, 640px);
+  display: flex;
+  flex-direction: column;
+  color: var(--lp-ink);
+  background: var(--lp-paper);
+  border-radius: var(--lp-card-radius);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--lp-space-3);
+  padding: var(--lp-space-4) var(--lp-space-6);
+  border-bottom: 1px solid var(--lp-line);
+}
+
+.modal-head h2 {
+  margin: 0;
+  font-family: var(--lp-font-display);
+  font-size: 1.25rem;
+}
+
+.modal-close {
+  min-height: var(--lp-target-min);
+  padding: 0 var(--lp-space-4);
+  font-family: var(--lp-font-body);
+  font-size: var(--lp-text-body);
+  font-weight: 600;
+  color: var(--lp-ink);
+  background: var(--lp-leaf-tint);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+.modal-close:focus-visible {
+  outline: var(--lp-focus-ring);
+  outline-offset: 2px;
+}
+
+.modal-body {
+  padding: var(--lp-space-4) var(--lp-space-6);
+  overflow-y: auto;
+  font-size: var(--lp-text-body);
+  line-height: 1.65;
+}
+
+.modal-body h3 {
+  margin: var(--lp-space-4) 0 var(--lp-space-2);
+  font-size: var(--lp-text-body);
+}
+
+.modal-body h3:first-child {
+  margin-top: 0;
+}
+
+.modal-body ul,
+.modal-body ol {
+  margin: 0;
+  padding-left: var(--lp-space-6);
+}
+
+.modal-body li + li {
+  margin-top: var(--lp-space-1);
+}
+
+.log-day + .log-day {
+  margin-top: var(--lp-space-2);
+}
+
+/* 작은 보조 버튼 (푸터용 업데이트 내역 등) */
+.btn-small {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 var(--lp-space-4);
+  font-family: var(--lp-font-body);
+  font-size: var(--lp-text-badge);
+  font-weight: 600;
+  color: var(--lp-ink-soft);
+  background: transparent;
+  border: 1px solid var(--lp-line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.btn-small:focus-visible {
+  outline: var(--lp-focus-ring);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .modal {
+    width: 100%;
+    max-height: 88dvh;
+    border-radius: 20px 20px 0 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal-overlay,
+  .modal {
+    transition: none;
+  }
+}

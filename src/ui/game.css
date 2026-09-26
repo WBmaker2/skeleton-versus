@@ -1,0 +1,356 @@
+/* Game screen — same calm tokens as the landing (theme.css).
+ * Dark arena surface; white shells for scores, modal, and controls. */
+
+.game-screen {
+  --game-max: 760px;
+  --game-gap: var(--lp-space-4);
+  --game-pad: var(--lp-space-4);
+  min-height: 100dvh;
+  margin: 0;
+  padding: var(--game-pad);
+  box-sizing: border-box;
+  color: var(--lp-paper);
+  background-color: var(--lp-ink);
+  background-image: radial-gradient(900px 420px at 50% -140px, #31465a, transparent 70%);
+  font-family: var(--lp-font-body);
+}
+
+.game-inner {
+  max-width: var(--game-max);
+  margin: 0 auto;
+}
+
+.game-kicker {
+  margin: 0 0 var(--lp-space-1);
+  font-size: var(--lp-text-label);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--lp-leaf-tint);
+}
+
+.game-title {
+  margin: 0 0 var(--lp-space-3);
+  font-family: var(--lp-font-display);
+  font-size: clamp(1.6rem, 4.5vw, 2.4rem);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--lp-paper);
+}
+
+/* Nav: one positioning model for all game links */
+.game-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lp-space-2);
+  margin: 0 0 var(--game-gap);
+}
+
+.game-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--lp-target-min);
+  box-sizing: border-box;
+  padding: var(--lp-space-2) var(--lp-space-4);
+  color: var(--lp-ink);
+  background: var(--lp-paper);
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: transform 180ms ease;
+}
+
+.game-nav a:hover {
+  transform: translateY(-2px);
+}
+
+.game-nav a:focus-visible {
+  outline: 3px solid var(--lp-leaf-tint);
+  outline-offset: 3px;
+}
+
+/* 게임 방법 버튼: ← 모든 게임과 같은 줄, 오른쪽 끝 배치 */
+.game-nav #howto {
+  margin-left: auto;
+}
+
+.game-nav .btn-small {
+  min-height: var(--lp-target-min);
+  color: var(--lp-ink);
+  background: var(--lp-paper);
+  border: none;
+  font-size: var(--lp-text-body);
+}
+
+/* Stage: video mirror with canvas overlay, shared 4/3 frame */
+.stage-frame {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #101c26;
+  border: 1px solid #3a4f63;
+  border-radius: var(--lp-card-radius);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
+}
+
+.stage-frame video,
+.stage-frame canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* 셀카 미러: 모델 좌표는 원본(raw) 그대로 두고 CSS에서만 쌍반전한다.
+   * 모델까지 뒤집으면 이중 반전이 되어 몸과 반대로 움직이므로 금지.
+   * 한쪽만 반전해도 어긋나 보이므로 반드시 쌍으로 유지. */
+  transform: scaleX(-1);
+}
+
+/* 폭탄 충격 흔들림 (loop.ts shake, 350ms). */
+.stage-frame canvas.shake {
+  animation: stage-shake 320ms ease;
+}
+
+@keyframes stage-shake {
+  0%, 100% { margin-left: 0; }
+  25% { margin-left: -10px; }
+  50% { margin-left: 8px; }
+  75% { margin-left: -5px; }
+}
+
+/* 실시간 영상은 선명하게: 게임 요소는 캔버스 위에서 크게 그려 구분한다. */
+
+/* Scoreboard chips: shared shell, one metric each */
+.hud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lp-space-3);
+  margin: var(--game-gap) 0 0;
+  padding: 0;
+}
+
+.hud-chip {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: var(--lp-space-2) var(--lp-space-4);
+  color: var(--lp-ink);
+  background: var(--lp-paper);
+  border-radius: 14px;
+  text-align: center;
+}
+
+.hud-chip span {
+  display: block;
+  font-size: var(--lp-text-label);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--lp-ink-soft);
+}
+
+.hud-chip strong {
+  font-size: 2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-msg {
+  min-height: 1.75em;
+  font-size: 1.25rem;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+/* 스테이지 + 플로팅 오버레이 (카운트다운·결과·에러를 영상 위에 겹침) */
+.stage-wrap {
+  position: relative;
+}
+
+.overlay.overlay-float {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--lp-space-3);
+  margin: 0;
+  text-align: center;
+  background: rgba(16, 28, 38, 0.62);
+  border: none;
+  border-radius: var(--lp-card-radius);
+  box-shadow: none;
+}
+
+.overlay.overlay-float[hidden] {
+  display: none;
+}
+
+.overlay.overlay-float p {
+  margin: 0;
+  max-width: 36ch;
+  color: var(--lp-paper);
+  font-size: var(--lp-text-body);
+  line-height: 1.6;
+}
+
+.overlay.overlay-float label {
+  color: var(--lp-paper);
+}
+
+.overlay.overlay-float .form-err {
+  color: #ffb4ab;
+}
+
+/* Calibration / error overlay */
+.overlay {
+  margin: var(--game-gap) 0 0;
+  padding: var(--lp-space-6);
+  color: var(--lp-ink);
+  background: var(--lp-paper);
+  border-radius: var(--lp-card-radius);
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* 카운트다운 숫자: 가운데 크게 오버레이 */
+.count-num {
+  font-size: clamp(4rem, 18vw, 7rem);
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+  color: var(--lp-paper);
+  text-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
+  font-variant-numeric: tabular-nums;
+}
+
+.overlay-error {
+  border: 2px solid var(--lp-leaf-deep);
+}
+
+/* Buttons: one shape, two variants */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--lp-space-3) var(--lp-space-6);
+  min-height: var(--lp-target-min);
+  box-sizing: border-box;
+  font-family: var(--lp-font-body);
+  font-size: var(--lp-text-body);
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--lp-leaf-deep);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 180ms ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+}
+
+.btn:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.btn-accent {
+  color: var(--lp-ink);
+  background: var(--lp-leaf-tint);
+}
+
+.btn:focus-visible {
+  outline: 3px solid var(--lp-leaf-tint);
+  outline-offset: 3px;
+}
+
+/* Hidden attribute must win over component display values. */
+[hidden] {
+  display: none !important;
+}
+
+/* Camera row: label + select share one baseline */
+.camrow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--lp-space-3);
+  margin: var(--game-gap) 0 0;
+}
+
+.camrow label {
+  font-weight: 600;
+  color: var(--lp-leaf-tint);
+}
+
+.camrow select {
+  flex: 1 1 auto;
+  min-width: min(100%, 220px);
+  min-height: var(--lp-target-min);
+  padding: 0 var(--lp-space-3);
+  font-family: var(--lp-font-body);
+  font-size: var(--lp-text-body);
+  color: var(--lp-ink);
+  background: var(--lp-paper);
+  border: none;
+  border-radius: 12px;
+}
+
+.shareline,
+.ranks {
+  font-size: var(--lp-text-body);
+  color: var(--lp-leaf-tint);
+}
+
+.ranks {
+  margin: var(--lp-space-2) 0 0;
+  padding-left: var(--lp-space-6);
+}
+
+@media (max-width: 520px) {
+  .hud {
+    gap: var(--lp-space-2);
+  }
+  .hud-chip strong {
+    font-size: 1.5rem;
+  }
+}
+
+/* WCAG 2.2 2.3.3: honor reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  .game-nav a,
+  .btn {
+    transition: none;
+  }
+  .stage-frame canvas.shake {
+    animation: none;
+  }
+}
+
+/* 다음 단계 버튼 안내: 금빛 링 펄스 (로그인·입장·제출·공개·대전 시작 등) */
+.btn-pulse {
+  position: relative;
+  box-shadow: 0 0 0 0 rgba(223, 255, 0, 0.7);
+  animation: btn-pulse-ring 1.6s ease-out infinite;
+}
+@keyframes btn-pulse-ring {
+  0% { box-shadow: 0 0 0 0 rgba(223, 255, 0, 0.7); }
+  70% { box-shadow: 0 0 0 14px rgba(223, 255, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(223, 255, 0, 0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-pulse { animation: none; box-shadow: none; }
+}
+
+/* 2인 대전: 세로 2분할 스테이지 */
+.versus-wrap { --versus-max: 1100px; max-width: var(--versus-max); margin: 0 auto; }
+.versus-score {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; margin: 0 0 12px;
+}
+.versus-score .side { flex: 1; padding: 10px 14px; border-radius: 14px; background: var(--lp-paper); color: var(--lp-ink); }
+.versus-score .side.p2 { text-align: right; }
+.versus-score .mid { font-weight: 800; font-size: 1.4rem; color: var(--lp-paper); white-space: nowrap; }
+.versus-hint { color: var(--lp-leaf-tint); min-height: 1.6em; }
+.versus-attack { color: #ffd23d; font-weight: 700; min-height: 1.6em; }
