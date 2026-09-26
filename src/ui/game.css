@@ -354,3 +354,9 @@
 .versus-score .mid { font-weight: 800; font-size: 1.4rem; color: var(--lp-paper); white-space: nowrap; }
 .versus-hint { color: var(--lp-leaf-tint); min-height: 1.6em; }
 .versus-attack { color: #ffd23d; font-weight: 700; min-height: 1.6em; }
+
+/* 세로 화면(휴대폰): 남은 시간을 위로 올리고 양쪽 점수를 아래에 나란히 */
+@media (max-width: 520px) {
+  .versus-score { flex-wrap: wrap; }
+  .versus-score .mid { flex-basis: 100%; text-align: center; order: -1; }
+}

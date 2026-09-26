@@ -1,13 +1,13 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { openCamera } from '../src/main';
+import { openVersusCamera } from '../src/ui/camera';
 
 afterEach(() => {
   vi.unstubAllGlobals();
   document.body.innerHTML = '';
 });
 
-describe('openCamera fallback chain', () => {
+describe('openVersusCamera fallback chain', () => {
   it('tries 720p first for tracking quality', async () => {
     const stream720 = new MediaStream();
     const getUserMedia = vi
@@ -19,7 +19,7 @@ describe('openCamera fallback chain', () => {
     video.id = 'cam';
     video.play = vi.fn().mockResolvedValue(undefined);
     document.body.appendChild(video);
-    const out = await openCamera();
+    const out = await openVersusCamera();
     expect(out).toBe(video);
     expect(getUserMedia).toHaveBeenCalledTimes(2);
     expect(getUserMedia).toHaveBeenNthCalledWith(1, {
@@ -39,11 +39,11 @@ describe('openCamera fallback chain', () => {
     video.id = 'cam';
     video.play = vi.fn().mockResolvedValue(undefined);
     document.body.appendChild(video);
-    await expect(openCamera()).resolves.toBe(null);
+    await expect(openVersusCamera()).resolves.toBe(null);
   });
 });
 
-describe('openCamera device selection', () => {
+describe('openVersusCamera device selection', () => {
   it('tries exact deviceId first', async () => {
     const stream = new MediaStream();
     const getUserMedia = vi.fn().mockResolvedValueOnce(stream);
@@ -52,7 +52,7 @@ describe('openCamera device selection', () => {
     video.id = 'cam';
     video.play = vi.fn().mockResolvedValue(undefined);
     document.body.appendChild(video);
-    const out = await openCamera('abc123');
+    const out = await openVersusCamera('abc123');
     expect(out).toBe(video);
     expect(getUserMedia).toHaveBeenNthCalledWith(1, {
       video: { deviceId: { exact: 'abc123' }, width: 1280, height: 720 },

@@ -10,7 +10,7 @@ import { FruitDuelSide, SharedFruitPattern } from '../versus-games/fruit-duel';
 import { SquatTugSide, TugRope, drawTugOverlay } from '../versus-games/squat-tug';
 import { MathDashSide, SharedMathRound } from '../versus-games/math-dash';
 import { VERSUS_METAS, type VersusId } from './metas';
-import { getPreferredCamera, listCameras, setPreferredCamera } from '../ui/camera';
+import { getPreferredCamera, listCameras, openVersusCamera, setPreferredCamera } from '../ui/camera';
 import { fitStageToVideo } from '../ui/stage';
 import { beep } from '../ui/feedback';
 
@@ -65,7 +65,7 @@ export async function startVersus(app: HTMLElement, id: VersusId): Promise<void>
     };
   }
 
-  const video = await openCameraVersus(getPreferredCamera() ?? undefined);
+  const video = await openVersusCamera(getPreferredCamera() ?? undefined);
   const hud = document.getElementById('hud');
   if (!video) {
     if (hud) hud.textContent = '카메라를 찾지 못했어요. 카메라를 연결하고 다시 시도해주세요.';
@@ -231,27 +231,4 @@ export async function startVersus(app: HTMLElement, id: VersusId): Promise<void>
     if (timeEl) timeEl.textContent = `0:${String(remain).padStart(2, '0')}`;
     if (remain <= 0) clearInterval(timer);
   }, 500);
-}
-
-async function openCameraVersus(deviceId?: string): Promise<HTMLVideoElement | null> {
-  const video = document.getElementById('cam') as HTMLVideoElement | null;
-  if (!video) return null;
-  const attempts: MediaTrackConstraints[] = deviceId
-    ? [{ deviceId: { exact: deviceId }, width: 1280, height: 720 }]
-    : [];
-  attempts.push(
-    { width: 1280, height: 720, facingMode: 'user' },
-    { width: 640, height: 480 }
-  );
-  for (const vc of attempts) {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: vc, audio: false });
-      video.srcObject = stream;
-      await video.play();
-      return video;
-    } catch {
-      // 다음 해상도로 폴백
-    }
-  }
-  return null;
 }

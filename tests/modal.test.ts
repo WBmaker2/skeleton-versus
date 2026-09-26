@@ -1,8 +1,7 @@
 // @vitest-environment happy-dom
 import { afterEach, describe, expect, it } from 'vitest';
 import { openModal, parseUpdateLog, updateLogHTML } from '../src/ui/modal';
-import { RULES } from '../src/ui/help';
-import type { PlayableId } from '../src/ui/app';
+import { VERSUS_METAS } from '../src/versus/metas';
 
 afterEach(() => {
   document.body.innerHTML = '';
@@ -56,15 +55,12 @@ describe('openModal', () => {
   });
 });
 
-describe('RULES', () => {
-  it('covers all twelve games', () => {
-    const ids: PlayableId[] = [
-      'fruit', 'squat', 'math', 'abc', 'star', 'balloon',
-      'zombie', 'dance', 'simon', 'yoga', 'duo', 'recycle'
-    ];
-    for (const id of ids) {
-      expect(RULES[id].name.length).toBeGreaterThan(0);
-      expect(RULES[id].steps.length).toBeGreaterThanOrEqual(2);
+describe('VERSUS_METAS help', () => {
+  it('covers all three duels with steps', () => {
+    expect(VERSUS_METAS).toHaveLength(3);
+    for (const m of VERSUS_METAS) {
+      expect(m.name.length).toBeGreaterThan(0);
+      expect(m.help.length).toBeGreaterThanOrEqual(2);
     }
   });
 });

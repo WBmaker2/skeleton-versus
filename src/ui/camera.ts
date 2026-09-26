@@ -32,3 +32,28 @@ export function setPreferredCamera(deviceId: string): void {
     // 저장 실패는 무시 (선택 UI는 계속 동작)
   }
 }
+
+// 대전용 카메라 열기. 720p 우선으로 영상 품질을 확보하고,
+// 저장된 카메라가 있으면 먼저 정확히 지정해서 시도한다.
+export async function openVersusCamera(deviceId?: string): Promise<HTMLVideoElement | null> {
+  const video = document.getElementById('cam') as HTMLVideoElement | null;
+  if (!video) return null;
+  const attempts: MediaTrackConstraints[] = deviceId
+    ? [{ deviceId: { exact: deviceId }, width: 1280, height: 720 }]
+    : [];
+  attempts.push(
+    { width: 1280, height: 720, facingMode: 'user' },
+    { width: 640, height: 480 }
+  );
+  for (const vc of attempts) {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: vc, audio: false });
+      video.srcObject = stream;
+      await video.play();
+      return video;
+    } catch {
+      // 다음 해상도로 폴백
+    }
+  }
+  return null;
+}

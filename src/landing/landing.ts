@@ -2,7 +2,6 @@ import '../ui/theme.css';
 import './landing.css';
 import updateLogRaw from '../../docs/UPDATELOG.md?raw';
 import { openModal, parseUpdateLog, updateLogHTML } from '../ui/modal';
-import { adminDotHTML, wireAdminDot } from '../ui/leaderboard';
 import { VERSUS_METAS } from '../versus/metas';
 
 export interface LandingGame {
@@ -22,21 +21,41 @@ export const LANDING_GAMES: LandingGame[] = VERSUS_METAS.map((m) => ({
   effect: m.effect
 }));
 
-function placeholderFace(): string {
-  return `<svg class="art-fallback" viewBox="0 0 200 200" aria-hidden="true" focusable="false">`
-    + `<circle cx="70" cy="105" r="40" fill="#ffffff" stroke="#22303c" stroke-width="7"/>`
-    + `<circle cx="130" cy="105" r="40" fill="#ffffff" stroke="#22303c" stroke-width="7"/>`
-    + `<circle cx="60" cy="98" r="6" fill="#22303c"/>`
-    + `<circle cx="120" cy="98" r="6" fill="#22303c"/>`
-    + `<path d="M55 118 Q70 130 85 118" fill="none" stroke="#22303c" stroke-width="5" stroke-linecap="round"/>`
-    + `<path d="M115 118 Q130 130 145 118" fill="none" stroke="#22303c" stroke-width="5" stroke-linecap="round"/>`
-    + `</svg>`;
+function artFor(id: LandingGame['id']): string {
+  const open = `<svg class="art-fallback" viewBox="0 0 200 160" aria-hidden="true" focusable="false">`;
+  const close = `</svg>`;
+  if (id === 'versus-fruit') {
+    // 과일 2개 + 잎: 베기 대전
+    return open
+      + `<circle cx="70" cy="95" r="34" fill="#ff5d5d" stroke="#22303c" stroke-width="7"/>`
+      + `<ellipse cx="82" cy="66" rx="12" ry="6" fill="#3d9e57" transform="rotate(30 82 66)"/>`
+      + `<circle cx="140" cy="75" r="24" fill="#ff8a8a" stroke="#22303c" stroke-width="6"/>`
+      + `<ellipse cx="149" cy="54" rx="9" ry="5" fill="#3d9e57" transform="rotate(30 149 54)"/>`
+      + `<path d="M30 130 L120 60" stroke="#ffffff" stroke-width="6" stroke-linecap="round"/>`
+      + close;
+  }
+  if (id === 'versus-tug') {
+    // 줄 + 매듭 + 양쪽 화살표: 줄다리기
+    return open
+      + `<line x1="20" y1="80" x2="180" y2="80" stroke="#ffffff" stroke-width="7" stroke-linecap="round"/>`
+      + `<circle cx="100" cy="80" r="14" fill="#dfff00" stroke="#22303c" stroke-width="5"/>`
+      + `<path d="M40 50 L25 80 L40 110" fill="none" stroke="#00ffff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`
+      + `<path d="M160 50 L175 80 L160 110" fill="none" stroke="#ffd23d" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`
+      + close;
+  }
+  // 수학 달리기: 문제 + 3구역
+  return open
+    + `<text x="100" y="55" text-anchor="middle" font-size="34" font-weight="800" fill="#ffffff" font-family="sans-serif">7+8=?</text>`
+    + `<rect x="30" y="90" width="36" height="36" rx="8" fill="#dfff00"/>`
+    + `<rect x="82" y="90" width="36" height="36" rx="8" fill="none" stroke="#ffffff" stroke-width="5"/>`
+    + `<rect x="134" y="90" width="36" height="36" rx="8" fill="none" stroke="#ffffff" stroke-width="5"/>`
+    + close;
 }
 
 function card(game: LandingGame): string {
   return `<li>`
     + `<a class="game-card" style="--i: ${game.no - 1}" href="#/${game.id}">`
-    + `<div class="art-frame">${placeholderFace()}</div>`
+    + `<div class="art-frame">${artFor(game.id)}</div>`
     + `<span class="game-card__badge">대전 ${game.no} · ${game.effect}</span>`
     + `<h2 class="game-card__title">${game.name}</h2>`
     + `<p class="game-card__rule">${game.rule}</p>`
@@ -55,11 +74,10 @@ export function renderLanding(app: HTMLElement): void {
     + LANDING_GAMES.map(card).join('')
     + `</ul></main>`
     + `<footer><p class="landing__foot">TIP: 둘이 다 화면에 보여야 점수가 올라가요. `
-    + `<button type="button" id="updatelog" class="btn-small">업데이트 내역</button> ${adminDotHTML()}</p>`
+    + `<button type="button" id="updatelog" class="btn-small">업데이트 내역</button></p>`
     + `<p class="landing__readiness" id="readiness">인식 모델 확인 중…</p></footer>`
     + `</div></div>`;
   wireUpdateLog();
-  wireAdminDot(app, () => {});
   void refreshReadiness(app);
 }
 

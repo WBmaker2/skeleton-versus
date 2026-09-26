@@ -1,6 +1,6 @@
 // tests/mediapipe-names.test.ts
 import { describe, expect, it } from 'vitest';
-import { landmarkName } from '../src/pose/mediapipe-adapter';
+import { landmarkName } from '../src/pose/mediapipe-dual';
 
 describe('landmarkName', () => {
   it('maps canonical indices to MoveNet-compatible names', () => {

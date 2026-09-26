@@ -2,7 +2,26 @@
 // 2인 대전용 MediaPipe 어댑터. numPoses:2로 최대 2명을 돌려준다.
 import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
 import type { PoseFrame } from './types';
-import { landmarkName } from './mediapipe-adapter';
+
+const LANDMARK_NAMES: Record<number, string> = {
+  0: 'nose',
+  11: 'left_shoulder',
+  12: 'right_shoulder',
+  13: 'left_elbow',
+  14: 'right_elbow',
+  15: 'left_wrist',
+  16: 'right_wrist',
+  23: 'left_hip',
+  24: 'right_hip',
+  25: 'left_knee',
+  26: 'right_knee',
+  27: 'left_ankle',
+  28: 'right_ankle'
+};
+
+export function landmarkName(i: number): string {
+  return LANDMARK_NAMES[i] ?? `lm${i}`;
+}
 
 const POSE_TASK_LOCAL_URL = 'models/pose_landmarker_lite.task';
 const POSE_TASK_CDN_URL =

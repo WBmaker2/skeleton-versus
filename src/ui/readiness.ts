@@ -7,7 +7,7 @@ export interface Readiness {
   cached: boolean;
 }
 
-export const MODEL_URL = 'models/movenet/model.json';
+export const MODEL_URL = 'models/pose_landmarker_lite.task';
 
 function hasWebGL(): boolean {
   try {
