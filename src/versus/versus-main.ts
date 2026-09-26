@@ -7,9 +7,7 @@ import { calibrateDual } from './dual-calibration';
 import { recordLabel, saveResult, type Winner } from './record';
 import type { PoseFrame } from '../pose/types';
 import { loadDualEngine } from '../pose/mediapipe-dual';
-import { FruitDuelSide, SharedFruitPattern } from '../versus-games/fruit-duel';
-import { SquatTugSide, TugRope, drawTugOverlay } from '../versus-games/squat-tug';
-import { MathDashSide, SharedMathRound } from '../versus-games/math-dash';
+import { VERSUS_REGISTRY } from './registry';
 import { VERSUS_METAS, type VersusId } from './metas';
 import { getPreferredCamera, listCameras, openVersusCamera, setPreferredCamera } from '../ui/camera';
 import { fitStageToVideo } from '../ui/stage';
@@ -103,44 +101,17 @@ export async function startVersus(app: HTMLElement, id: VersusId): Promise<void>
   const attacks = new AttackBus();
   attacks.reset();
 
-  // 게임별 좌우 인스턴스
-  let left: { board: { score: number }; tick(a: never, b: number): never[]; draw?: (c: CanvasRenderingContext2D, w: number, h: number) => void; start(): void; stop(): void };
-  let right: typeof left;
-  let rope: TugRope | null = null;
-  let tugOverlay: ((ctx: CanvasRenderingContext2D, w: number, h: number) => void) | undefined;
-  if (id === 'versus-fruit') {
-    // 양쪽이 같은 순서·같은 종류, 위치는 좌우 대칭으로 나온다.
-    const pattern = new SharedFruitPattern();
-    const l = new FruitDuelSide('p1', attacks, pattern);
-    const r = new FruitDuelSide('p2', attacks, pattern);
-    l.radiusScale = dualCal.p1.scale;
-    r.radiusScale = dualCal.p2.scale;
-    l.start(); r.start();
-    left = l as unknown as typeof left;
-    right = r as unknown as typeof left;
-  } else if (id === 'versus-tug') {
-    rope = new TugRope();
-    const l = new SquatTugSide('p1', rope, attacks);
-    const r = new SquatTugSide('p2', rope, attacks);
-    const tugL = l;
-    const tugR = r;
-    l.start(); r.start();
-    left = l as unknown as typeof left;
-    right = r as unknown as typeof left;
-    tugOverlay = (ctx, w, h) => {
-      // 양쪽 박자 시계는 같은 dt로 돌아가므로 왼쪽 기준으로 그린다.
-      drawTugOverlay(ctx, w, h, rope as TugRope, tugL.beatPhaseMs);
-      void tugR;
-    };
-  } else {
-    // 양쪽이 같은 문제를 푸는 공유 라운드 (선착순 +20/+10은 라운드가 판정).
-    const round = new SharedMathRound();
-    const l = new MathDashSide('p1', attacks, round);
-    const r = new MathDashSide('p2', attacks, round);
-    l.start(); r.start();
-    left = l as unknown as typeof left;
-    right = r as unknown as typeof left;
-  }
+  // 게임별 좌우 인스턴스 (레지스트리에서 생성).
+  type SideHandle = {
+    board: { score: number };
+    tick(a: never, b: number): never[];
+    draw?: (c: CanvasRenderingContext2D, w: number, h: number) => void;
+    start(): void;
+    stop(): void;
+  };
+  const setup = VERSUS_REGISTRY[id](attacks, dualCal);
+  const left = setup.left as unknown as SideHandle;
+  const right = setup.right as unknown as SideHandle;
 
   const canvas = document.getElementById('stage') as HTMLCanvasElement | null;
   if (!canvas) return;
@@ -169,7 +140,7 @@ export async function startVersus(app: HTMLElement, id: VersusId): Promise<void>
     right: right as never,
     attacks,
     timeLimitSec: 60,
-    overlay: tugOverlay,
+    overlay: setup.overlay,
     onEvent: (side, events) => {
       for (const e of events) {
         beep(e.type === 'bomb' || e.type === 'wrong' ? 'miss' : e.type === 'attack' ? 'win' : 'hit');
@@ -186,13 +157,9 @@ export async function startVersus(app: HTMLElement, id: VersusId): Promise<void>
         }
         if (hud && e.type !== 'attack') hud.textContent = `${e.label}`;
       }
-      // 수학 공유 라운드는 MathDashSide.tick 안에서 선착순을 처리하므로
-      // 매니저가 따로 claim을 만지지 않는다.
-      // 줄다리기 점수는 줄 위치로도 표시
-      if (id === 'versus-tug' && rope && hud) {
-        const w = rope.winner();
-        hud.textContent = w === 'draw' ? '줄을 당겨라!' : w === 'p1' ? 'P1이 앞서고 있어요!' : 'P2가 앞서고 있어요!';
-      }
+      // 줄다리기처럼 줄 위치로 승부를 내는 종목은 레지스트리의 안내를 쓴다.
+      const hint = setup.statusHint?.();
+      if (hint && hud) hud.textContent = hint;
       refresh();
     },
     onHint: (msg) => {
@@ -202,8 +169,9 @@ export async function startVersus(app: HTMLElement, id: VersusId): Promise<void>
       const result = document.getElementById('result');
       if (!result) return;
       let winner: Winner;
-      if (id === 'versus-tug' && rope) {
-        winner = rope.winner();
+      const setupWinner = setup.winner?.();
+      if (setupWinner) {
+        winner = setupWinner;
       } else {
         const lScore = (left as unknown as { board: { score: number } }).board.score;
         const rScore = (right as unknown as { board: { score: number } }).board.score;

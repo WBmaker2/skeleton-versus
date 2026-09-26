@@ -8,6 +8,7 @@ import type { GameEvent } from '../../game/types';
 import { ScoreBoard } from '../../game/engine';
 import { makeQuiz } from './quiz';
 import { SharedMathRound } from './shared-round';
+import { drawVersusLabel } from '../../versus/draw';
 import type { AttackBus } from '../../versus/attack';
 
 export type DashSide = 'p1' | 'p2';
@@ -119,26 +120,20 @@ export class MathDashSide {
     const lo = this.side === 'p1' ? 0 : width / 2;
     const hw = width / 2;
     const quiz = this.round.quiz;
-    ctx.save();
-    ctx.fillStyle = '#fff';
-    ctx.font = '700 30px sans-serif';
-    ctx.textAlign = 'center';
-    // 안개 중이면 문제를 흐릿하게
-    ctx.globalAlpha = this.fogged ? 0.35 : 1;
-    ctx.fillText(quiz.q, lo + hw / 2, 70);
-    ctx.globalAlpha = 1;
-    ctx.font = '700 22px sans-serif';
+    const cx = lo + hw / 2;
+    // 안개 중이면 문제를 흐릿하게 (drawVersusLabel은 색상만 받으므로 알파는 생략).
+    // 흐림 대신 물음표 개수를 줄여서 표현하지 않고, 색을 흐리게 칠한다.
+    drawVersusLabel(ctx, quiz.q, cx, 70, 30, this.fogged ? 'rgba(255,255,255,0.35)' : '#fff');
     quiz.choices.forEach((c, i) => {
-      const cx = lo + hw * ((i * 2 + 1) / 6);
+      const x = lo + hw * ((i * 2 + 1) / 6);
       const active = i === this.lastZone;
-      ctx.fillStyle = active ? '#dfff00' : 'rgba(255,255,255,0.85)';
-      ctx.fillText(String(c), cx, 110);
+      drawVersusLabel(ctx, String(c), x, 110, 22, active ? '#dfff00' : 'rgba(255,255,255,0.85)');
     });
     if (this.thinkMs > 0) {
-      ctx.fillStyle = 'rgba(255,255,255,0.8)';
-      ctx.font = '400 16px sans-serif';
-      ctx.fillText(`생각 중 ${(this.thinkMs / 1000).toFixed(1)}초`, lo + hw / 2, height - 60);
+      drawVersusLabel(
+        ctx, `생각 중 ${(this.thinkMs / 1000).toFixed(1)}초`, cx, height - 60, 16,
+        'rgba(255,255,255,0.8)'
+      );
     }
-    ctx.restore();
   }
 }

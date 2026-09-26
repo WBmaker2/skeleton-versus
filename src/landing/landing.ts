@@ -2,17 +2,17 @@ import '../ui/theme.css';
 import './landing.css';
 import updateLogRaw from '../../docs/UPDATELOG.md?raw';
 import { openModal, parseUpdateLog, updateLogHTML } from '../ui/modal';
-import { VERSUS_METAS } from '../versus/metas';
+import { VERSUS_METAS, type VersusId } from '../versus/metas';
 
 export interface LandingGame {
-  id: 'versus-fruit' | 'versus-tug' | 'versus-math';
+  id: VersusId;
   no: number;
   name: string;
   rule: string;
   effect: string;
 }
 
-// 대전 3종만 보여준다 (1인 12종 코드는 그대로 두되 랜딩에서는 숨김).
+// 대전 전종목을 보여준다 (새 종목은 VERSUS_METAS에만 추가하면 카드가 따라온다).
 export const LANDING_GAMES: LandingGame[] = VERSUS_METAS.map((m) => ({
   id: m.id as LandingGame['id'],
   no: m.no,
@@ -44,11 +44,39 @@ function artFor(id: LandingGame['id']): string {
       + close;
   }
   // 수학 달리기: 문제 + 3구역
+  if (id === 'versus-math') {
+    return open
+      + `<text x="100" y="55" text-anchor="middle" font-size="34" font-weight="800" fill="#ffffff" font-family="sans-serif">7+8=?</text>`
+      + `<rect x="30" y="90" width="36" height="36" rx="8" fill="#dfff00"/>`
+      + `<rect x="82" y="90" width="36" height="36" rx="8" fill="none" stroke="#ffffff" stroke-width="5"/>`
+      + `<rect x="134" y="90" width="36" height="36" rx="8" fill="none" stroke="#ffffff" stroke-width="5"/>`
+      + close;
+  }
+  if (id === 'versus-star') {
+    // 별 3개: 별잡기 대전
+    return open
+      + `<path d="M70 30 l9 19 21 3 -15 15 4 21 -19 -10 -19 10 4 -21 -15 -15 21 -3 z" fill="#dfff00" stroke="#22303c" stroke-width="4" stroke-linejoin="round"/>`
+      + `<path d="M140 70 l7 14 16 2 -11 11 3 16 -15 -8 -15 8 3 -16 -11 -11 16 -2 z" fill="#ffffff" stroke="#22303c" stroke-width="4" stroke-linejoin="round"/>`
+      + `<circle cx="60" cy="120" r="5" fill="#ffffff"/>`
+      + `<circle cx="150" cy="120" r="5" fill="#ffffff"/>`
+      + close;
+  }
+  if (id === 'versus-simon') {
+    // 확성기: 사이먼 대전
+    return open
+      + `<rect x="60" y="45" width="50" height="70" rx="10" fill="#ff71ce" stroke="#22303c" stroke-width="6"/>`
+      + `<path d="M110 60 L150 40 L150 110 L110 95 z" fill="#ffffff" stroke="#22303c" stroke-width="6" stroke-linejoin="round"/>`
+      + `<circle cx="72" cy="65" r="5" fill="#22303c"/>`
+      + `<circle cx="90" cy="65" r="5" fill="#22303c"/>`
+      + `<path d="M72 90 Q81 98 90 90" fill="none" stroke="#22303c" stroke-width="5" stroke-linecap="round"/>`
+      + close;
+  }
+  // 별자리 대전: 이어진 별 3개 + 점선
   return open
-    + `<text x="100" y="55" text-anchor="middle" font-size="34" font-weight="800" fill="#ffffff" font-family="sans-serif">7+8=?</text>`
-    + `<rect x="30" y="90" width="36" height="36" rx="8" fill="#dfff00"/>`
-    + `<rect x="82" y="90" width="36" height="36" rx="8" fill="none" stroke="#ffffff" stroke-width="5"/>`
-    + `<rect x="134" y="90" width="36" height="36" rx="8" fill="none" stroke="#ffffff" stroke-width="5"/>`
+    + `<path d="M30 120 L90 50 L160 95" fill="none" stroke="#ffffff" stroke-width="5" stroke-dasharray="10 8" stroke-linecap="round"/>`
+    + `<circle cx="30" cy="120" r="12" fill="#dfff00" stroke="#22303c" stroke-width="4"/>`
+    + `<circle cx="90" cy="50" r="12" fill="#dfff00" stroke="#22303c" stroke-width="4"/>`
+    + `<circle cx="160" cy="95" r="12" fill="#ffffff" stroke="#22303c" stroke-width="4"/>`
     + close;
 }
 

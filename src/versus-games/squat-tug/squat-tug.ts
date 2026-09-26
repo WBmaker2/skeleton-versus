@@ -7,6 +7,7 @@ import { angleDeg, getByName } from '../../pose/geometry';
 import type { GameEvent } from '../../game/types';
 import { ScoreBoard } from '../../game/engine';
 import type { AttackBus } from '../../versus/attack';
+import { drawVersusLabel } from '../../versus/draw';
 
 export type TugSide = 'p1' | 'p2';
 
@@ -63,13 +64,12 @@ export function drawTugOverlay(
   ctx.lineTo(width - 20, midY);
   ctx.stroke();
   // 승리선 표시 (|30 위치)
-  ctx.fillStyle = 'rgba(255,255,255,0.5)';
-  ctx.font = '700 14px sans-serif';
-  ctx.textAlign = 'center';
   const winL = width / 2 - (TUG_WIN_POS / 100) * (width / 2 - 40);
   const winR = width / 2 + (TUG_WIN_POS / 100) * (width / 2 - 40);
-  ctx.fillText('P1 승리선', winL, midY - 14);
-  ctx.fillText('P2 승리선', winR, midY - 14);
+  ctx.restore();
+  drawVersusLabel(ctx, 'P1 승리선', winL, midY - 14, 14, 'rgba(255,255,255,0.85)');
+  drawVersusLabel(ctx, 'P2 승리선', winR, midY - 14, 14, 'rgba(255,255,255,0.85)');
+  ctx.save();
   // 줄 매듭: 현재 위치
   const knotX = width / 2 + (rope.pos / 100) * (width / 2 - 40);
   ctx.fillStyle = '#dfff00';
@@ -96,10 +96,8 @@ export function drawTugOverlay(
   ctx.beginPath();
   ctx.arc(dotX, barY + 6, 8, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,0.85)';
-  ctx.font = '400 14px sans-serif';
-  ctx.fillText('박자에 맞춰 일어나면 2칸!', width / 2, barY - 8);
   ctx.restore();
+  drawVersusLabel(ctx, '박자에 맞춰 일어나면 2칸!', width / 2, barY - 8, 14, 'rgba(255,255,255,0.85)');
 }
 
 export class SquatTugSide {
@@ -197,10 +195,8 @@ export class SquatTugSide {
     ctx.fillRect(x, y, w, 12);
     ctx.fillStyle = this.depth > 0.6 ? '#dfff00' : '#00ffff';
     ctx.fillRect(x, y, w * this.depth, 12);
-    ctx.fillStyle = '#fff';
-    ctx.font = '700 18px sans-serif';
-    ctx.fillText(`${this.side === 'p1' ? 'P1' : 'P2'} ${this.reps}회`, x, y - 8);
     ctx.restore();
+    drawVersusLabel(ctx, `${this.side === 'p1' ? 'P1' : 'P2'} ${this.reps}회`, x + w / 2, y - 8, 18);
   }
 }
 

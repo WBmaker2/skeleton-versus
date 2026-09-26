@@ -1,15 +1,8 @@
 import { parseHash } from './ui/router';
-import type { GameId } from './ui/router';
 import { renderLanding } from './landing/landing';
 import { startVersus } from './versus/versus-main';
-import type { VersusId } from './versus/metas';
+import { isVersusId } from './versus/metas';
 import './ui/game.css';
-
-type VersusRoute = Exclude<GameId, 'home'>;
-
-function isVersusRoute(id: GameId): id is VersusRoute {
-  return id === 'versus-fruit' || id === 'versus-tug' || id === 'versus-math';
-}
 
 export function boot(): void {
   if ((window as unknown as { __skelversus_booted?: boolean }).__skelversus_booted) return;
@@ -26,8 +19,8 @@ export function boot(): void {
       renderLanding(app);
       return;
     }
-    if (isVersusRoute(hash)) {
-      void startVersus(app, hash as VersusId);
+    if (isVersusId(hash)) {
+      void startVersus(app, hash);
       return;
     }
   };

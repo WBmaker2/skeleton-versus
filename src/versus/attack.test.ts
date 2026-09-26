@@ -20,4 +20,29 @@ describe('AttackBus', () => {
     bus.tick(3100);
     expect(bus.onP2).toBeNull();
   });
+  it('먹별은 큐에 쌓인다', () => {
+    const bus = new AttackBus();
+    bus.send('dark', 'p2');
+    expect(bus.takeDark('p1')).toBe(1);
+    expect(bus.takeDark('p1')).toBe(0);
+  });
+  it('지속형 방해 시간을 지킨다 (heavy 3초·rush 5초·offbeat 5초)', () => {
+    const bus = new AttackBus();
+    bus.send('heavy', 'p1');
+    expect(bus.onP2?.kind).toBe('heavy');
+    bus.tick(3000);
+    expect(bus.onP2).toBeNull();
+    const bus2 = new AttackBus();
+    bus2.send('rush', 'p1');
+    bus2.tick(4900);
+    expect(bus2.onP2?.kind).toBe('rush');
+    bus2.tick(200);
+    expect(bus2.onP2).toBeNull();
+    const bus3 = new AttackBus();
+    bus3.send('offbeat', 'p2');
+    bus3.tick(4900);
+    expect(bus3.onP1?.kind).toBe('offbeat');
+    bus3.tick(200);
+    expect(bus3.onP1).toBeNull();
+  });
 });

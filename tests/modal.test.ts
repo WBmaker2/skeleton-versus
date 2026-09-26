@@ -56,8 +56,8 @@ describe('openModal', () => {
 });
 
 describe('VERSUS_METAS help', () => {
-  it('covers all three duels with steps', () => {
-    expect(VERSUS_METAS).toHaveLength(3);
+  it('covers all duels with steps', () => {
+    expect(VERSUS_METAS.length).toBeGreaterThanOrEqual(3);
     for (const m of VERSUS_METAS) {
       expect(m.name.length).toBeGreaterThan(0);
       expect(m.help.length).toBeGreaterThanOrEqual(2);
