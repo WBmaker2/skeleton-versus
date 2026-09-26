@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { SquatTugSide, TugRope } from './squat-tug';
+import {
+  SquatTugSide, TugRope, beatError, drawTugOverlay,
+  kneeAngle, TUG_BEAT_MS, TUG_PERFECT_MS, TUG_WIN_POS
+} from './squat-tug';
 import { AttackBus } from '../../versus/attack';
 import type { PoseFrame } from '../../pose/types';
 
@@ -33,9 +36,37 @@ describe('SquatTug', () => {
   });
   it('줄 승자를 판정한다', () => {
     const rope = new TugRope();
-    rope.pos = -40;
+    rope.pos = -TUG_WIN_POS - 10;
     expect(rope.winner()).toBe('p1');
-    rope.pos = 40;
+    rope.pos = TUG_WIN_POS + 10;
     expect(rope.winner()).toBe('p2');
+    rope.pos = 0;
+    expect(rope.winner()).toBe('draw');
+  });
+  it('박자 오차를 잰다 (0=정박)', () => {
+    expect(beatError(0)).toBe(0);
+    expect(beatError(TUG_PERFECT_MS - 1)).toBeLessThan(TUG_PERFECT_MS);
+    expect(beatError(TUG_BEAT_MS / 2)).toBe(TUG_BEAT_MS / 2);
+    expect(beatError(TUG_BEAT_MS - 10)).toBe(10);
+  });
+  it('무릎 각도를 잰다 (일직선 180, 직각 90)', () => {
+    expect(kneeAngle(squatFrame('up'))).toBeCloseTo(180, 0);
+    expect(kneeAngle(squatFrame('down'))).toBeCloseTo(90, 0);
+  });
+  it('줄+박자바 오버레이가 예외 없이 그려진다', () => {
+    const rope = new TugRope();
+    rope.pos = -20;
+    const calls: string[] = [];
+    const ctx = new Proxy({}, {
+      get: (_t, p) => {
+        if (p === 'canvas') return undefined;
+        calls.push(String(p));
+        return (..._a: unknown[]): undefined => undefined;
+      },
+      set: () => true
+    }) as unknown as CanvasRenderingContext2D;
+    expect(() => drawTugOverlay(ctx, 960, 480, rope, 500)).not.toThrow();
+    expect(calls).toContain('arc');
+    expect(calls).toContain('fillRect');
   });
 });

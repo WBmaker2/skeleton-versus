@@ -6,6 +6,7 @@ import { palmOf } from '../../pose/geometry';
 import type { GameEvent } from '../../game/types';
 import { ScoreBoard } from '../../game/engine';
 import type { AttackBus } from '../../versus/attack';
+import type { SharedFruitPattern } from './spawner';
 
 export type DuelFruitKind = 'fruit' | 'bomb' | 'rotten';
 export interface DuelFruit {
@@ -25,7 +26,8 @@ export class FruitDuelSide {
 
   constructor(
     public side: DuelSide,
-    private attacks: AttackBus
+    private attacks: AttackBus,
+    private pattern: SharedFruitPattern
   ) {}
 
   start(): void {
@@ -40,13 +42,15 @@ export class FruitDuelSide {
     this.running = false;
   }
 
-  // 내 반쪽에만 스폰. P1: 6~44%, P2: 56~94%
+  // 내 반쪽에만 스폰. P1: 6~44%, P2: 56~94%.
+  // 공유 패턴에서 같은 순서·같은 종류를 받고, 위치는 가운데선 대칭(미러).
   spawn(width = 640): void {
-    const kind: DuelFruitKind = Math.random() < 0.2 ? 'bomb' : 'fruit';
+    const spec = this.pattern.nextFor(this.side);
+    const rel = this.side === 'p1' ? spec.relX : 1 - spec.relX;
     const lo = this.side === 'p1' ? width * 0.06 : width * 0.56;
     const hi = this.side === 'p1' ? width * 0.44 : width * 0.94;
-    const x = lo + Math.random() * (hi - lo);
-    this.fruits.push({ x, y: -20, vx: (Math.random() - 0.5) * 120, vy: 120 + Math.random() * 140, kind, alive: true });
+    const x = lo + rel * (hi - lo);
+    this.fruits.push({ x, y: -20, vx: (Math.random() - 0.5) * 120, vy: 120 + Math.random() * 140, kind: spec.kind, alive: true });
     this.spawnCount += 1;
   }
 

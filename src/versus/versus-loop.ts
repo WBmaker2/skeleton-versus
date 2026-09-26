@@ -28,6 +28,8 @@ export interface VersusLoopOpts {
   onEvent?: (side: 'p1' | 'p2', events: GameEvent[]) => void;
   onTimeUp?: () => void;
   onHint?: (msg: string) => void;
+  // 전체 너비 오버레이 (줄다리기 줄+박자바 등, 좌우 클립 밖에서 1회 그리기).
+  overlay?: (ctx: CanvasRenderingContext2D, width: number, height: number) => void;
 }
 
 export class VersusLoop {
@@ -99,6 +101,9 @@ export class VersusLoop {
           withSideClip(ctx, canvas.width, canvas.height, 'p2', () => {
             this.opts.right.draw?.(ctx, canvas.width, canvas.height);
           });
+          try {
+            this.opts.overlay?.(ctx, canvas.width, canvas.height);
+          } catch { /* 오버레이 실패는 루프 유지 */ }
         } catch { /* 그리기 실패는 루프 유지 */ }
         try {
           if (split.left) drawSkeleton(canvas, split.left);

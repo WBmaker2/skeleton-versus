@@ -1,11 +1,13 @@
 // src/versus-games/math-dash/math-dash.ts
 // 수학 달리기 대전: 각자 자기 반쪽의 3구역(왼/가운데/오른)으로 이동 + 손들기.
-// 먼저 맞추면 +20 + 상대에게 안개 3초, 나중이면 +10, 틀리면 -5.
+// 양쪽이 같은 문제(SharedMathRound)를 풀고 선착순으로 나눈다.
+// 먼저 맞추면 +20 + 상대에게 안개 3초, 같은 문제에 뒤따라 맞추면 +10, 틀리면 -5.
 import type { PoseFrame } from '../../pose/types';
 import { bodyCenterX, getByName } from '../../pose/geometry';
 import type { GameEvent } from '../../game/types';
 import { ScoreBoard } from '../../game/engine';
-import { makeQuiz, type Quiz } from '../../games/math/math-jump';
+import { makeQuiz } from './quiz';
+import { SharedMathRound } from './shared-round';
 import type { AttackBus } from '../../versus/attack';
 
 export type DashSide = 'p1' | 'p2';
@@ -29,28 +31,29 @@ function handsUp(frame: PoseFrame): boolean {
 
 export class MathDashSide {
   board = new ScoreBoard();
-  quiz: Quiz = makeQuiz();
   solved = 0;
   thinkMs = 0;
   dwellMs = 0;
   lastZone: 0 | 1 | 2 = 0;
   private running = false;
-  // 먼저 푼 사람이 있으면 true (상대 보너스 감소용, 매니저가 설정)
-  roundClaimed = false;
+  private lastGen = 0;
 
   constructor(
     public side: DashSide,
-    private attacks: AttackBus
+    private attacks: AttackBus,
+    public round: SharedMathRound
   ) {}
 
   start(): void {
     this.running = true;
     this.board.reset();
-    this.quiz = makeQuiz();
+    this.round.quiz = makeQuiz();
+    this.round.claimed = false;
+    this.round.solvedBy = null;
     this.solved = 0;
     this.thinkMs = 3500;
     this.dwellMs = 0;
-    this.roundClaimed = false;
+    this.lastGen = this.round.gen;
   }
   stop(): void {
     this.running = false;
@@ -63,6 +66,19 @@ export class MathDashSide {
 
   tick(frame: PoseFrame, dtMs: number): GameEvent[] {
     if (!this.running) return [];
+    // 문제를 푼 쪽의 다음 tick에 함께 다음 문제로 (같은 프레임 선착순 보장).
+    // 상대는 그 전까지 옛 문제로 +10을 노릴 수 있다.
+    if (this.round.pendingNext && this.round.solvedBy === this.side) {
+      this.round.next();
+      this.lastGen = this.round.gen;
+      this.thinkMs = 3500;
+      this.dwellMs = 0;
+    } else if (this.round.gen !== this.lastGen) {
+      // 상대가 먼저 넘긴 새 문제 따라가기.
+      this.lastGen = this.round.gen;
+      this.thinkMs = 3500;
+      this.dwellMs = 0;
+    }
     this.thinkMs = Math.max(0, this.thinkMs - dtMs);
     const cx = bodyCenterX(frame);
     const zone = zoneOf(cx, this.side, frame.width);
@@ -76,10 +92,9 @@ export class MathDashSide {
     // 생각 시간 이후 + 같은 구역 0.6초 + 손들기, 또는 손들고 0.3초 유지 즉시 확정
     const ready = this.thinkMs <= 0 && ((this.dwellMs >= 600 && up) || (up && this.dwellMs >= 300));
     if (!ready) return [];
-    const correct = zone === this.quiz.answerIndex;
+    const correct = zone === this.round.quiz.answerIndex;
     if (correct) {
-      const first = !this.roundClaimed;
-      this.roundClaimed = true;
+      const first = this.round.claim(this.side);
       const pts = first ? 20 : 10;
       this.board.comboHit();
       this.board.add(pts);
@@ -88,10 +103,10 @@ export class MathDashSide {
       if (first && this.attacks.send('fog', this.side)) {
         ev.push({ type: 'attack', points: 0, label: '안개! 상대 숫자 흐림 3초' });
       }
-      this.quiz = makeQuiz(this.quiz.q);
+      // 다음 문제는 문제를 푼 쪽의 다음 tick에 양쪽이 함께 받는다.
+      // 뒤따라 푼 쪽은 표시를 건드리지 않는다 (같은 문제 중복 득점 방지).
       this.thinkMs = 3500;
       this.dwellMs = 0;
-      // 다음 라운드 선착순 리셋은 매니저(versus-main)에서 양쪽 roundClaimed=false로
       return ev;
     }
     this.board.comboMiss();
@@ -103,16 +118,17 @@ export class MathDashSide {
   draw(ctx: CanvasRenderingContext2D, width: number, height: number): void {
     const lo = this.side === 'p1' ? 0 : width / 2;
     const hw = width / 2;
+    const quiz = this.round.quiz;
     ctx.save();
     ctx.fillStyle = '#fff';
     ctx.font = '700 30px sans-serif';
     ctx.textAlign = 'center';
     // 안개 중이면 문제를 흐릿하게
     ctx.globalAlpha = this.fogged ? 0.35 : 1;
-    ctx.fillText(this.quiz.q, lo + hw / 2, 70);
+    ctx.fillText(quiz.q, lo + hw / 2, 70);
     ctx.globalAlpha = 1;
     ctx.font = '700 22px sans-serif';
-    this.quiz.choices.forEach((c, i) => {
+    quiz.choices.forEach((c, i) => {
       const cx = lo + hw * ((i * 2 + 1) / 6);
       const active = i === this.lastZone;
       ctx.fillStyle = active ? '#dfff00' : 'rgba(255,255,255,0.85)';

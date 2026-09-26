@@ -2,10 +2,13 @@
 // 2인 대전 화면 실행. 카메라 1대 -> 듀얼 엔진 -> VersusLoop 60초.
 import { AttackBus } from './attack';
 import { VersusLoop } from './versus-loop';
+import { splitPoses } from './split';
+import { calibrateDual } from './dual-calibration';
+import type { PoseFrame } from '../pose/types';
 import { loadDualEngine } from '../pose/mediapipe-dual';
-import { FruitDuelSide } from '../versus-games/fruit-duel';
-import { SquatTugSide, TugRope } from '../versus-games/squat-tug';
-import { MathDashSide } from '../versus-games/math-dash';
+import { FruitDuelSide, SharedFruitPattern } from '../versus-games/fruit-duel';
+import { SquatTugSide, TugRope, drawTugOverlay } from '../versus-games/squat-tug';
+import { MathDashSide, SharedMathRound } from '../versus-games/math-dash';
 import { VERSUS_METAS, type VersusId } from './metas';
 import { getPreferredCamera, listCameras, setPreferredCamera } from '../ui/camera';
 import { fitStageToVideo } from '../ui/stage';
@@ -77,14 +80,24 @@ export async function startVersus(app: HTMLElement, id: VersusId): Promise<void>
   const skip = document.getElementById('skip') as HTMLButtonElement | null;
   let skipped = false;
   skip?.addEventListener('click', () => { skipped = true; });
-  // 5초 대기 (스킵 가능)
+  // 5초 대기 (스킵 가능). 그동안 좌/우 프레임을 모아 각자 보정한다.
   const waitMs = 5000;
   const t0 = Date.now();
+  const leftFrames: PoseFrame[] = [];
+  const rightFrames: PoseFrame[] = [];
+  const vw = video.videoWidth || 640;
   while (Date.now() - t0 < waitMs && !skipped) {
     await new Promise((r) => setTimeout(r, 200));
-    try { await engine.estimateDual(video); } catch { break; }
+    try {
+      const frames = await engine.estimateDual(video);
+      const split = splitPoses(frames, vw);
+      if (split.left) leftFrames.push(split.left);
+      if (split.right) rightFrames.push(split.right);
+    } catch { break; }
   }
   overlay?.remove();
+  // 각자 키·거리에 맞춘 손 크기 보정 (과일 베기 판정 반경용).
+  const dualCal = calibrateDual(leftFrames, rightFrames);
 
   const attacks = new AttackBus();
   attacks.reset();
@@ -93,12 +106,14 @@ export async function startVersus(app: HTMLElement, id: VersusId): Promise<void>
   let left: { board: { score: number }; tick(a: never, b: number): never[]; draw?: (c: CanvasRenderingContext2D, w: number, h: number) => void; start(): void; stop(): void };
   let right: typeof left;
   let rope: TugRope | null = null;
-  // math 선착순 공유용
-  let mathL: MathDashSide | null = null;
-  let mathR: MathDashSide | null = null;
+  let tugOverlay: ((ctx: CanvasRenderingContext2D, w: number, h: number) => void) | undefined;
   if (id === 'versus-fruit') {
-    const l = new FruitDuelSide('p1', attacks);
-    const r = new FruitDuelSide('p2', attacks);
+    // 양쪽이 같은 순서·같은 종류, 위치는 좌우 대칭으로 나온다.
+    const pattern = new SharedFruitPattern();
+    const l = new FruitDuelSide('p1', attacks, pattern);
+    const r = new FruitDuelSide('p2', attacks, pattern);
+    l.radiusScale = dualCal.p1.scale;
+    r.radiusScale = dualCal.p2.scale;
     l.start(); r.start();
     left = l as unknown as typeof left;
     right = r as unknown as typeof left;
@@ -106,14 +121,22 @@ export async function startVersus(app: HTMLElement, id: VersusId): Promise<void>
     rope = new TugRope();
     const l = new SquatTugSide('p1', rope, attacks);
     const r = new SquatTugSide('p2', rope, attacks);
+    const tugL = l;
+    const tugR = r;
     l.start(); r.start();
     left = l as unknown as typeof left;
     right = r as unknown as typeof left;
+    tugOverlay = (ctx, w, h) => {
+      // 양쪽 박자 시계는 같은 dt로 돌아가므로 왼쪽 기준으로 그린다.
+      drawTugOverlay(ctx, w, h, rope as TugRope, tugL.beatPhaseMs);
+      void tugR;
+    };
   } else {
-    const l = new MathDashSide('p1', attacks);
-    const r = new MathDashSide('p2', attacks);
+    // 양쪽이 같은 문제를 푸는 공유 라운드 (선착순 +20/+10은 라운드가 판정).
+    const round = new SharedMathRound();
+    const l = new MathDashSide('p1', attacks, round);
+    const r = new MathDashSide('p2', attacks, round);
     l.start(); r.start();
-    mathL = l; mathR = r;
     left = l as unknown as typeof left;
     right = r as unknown as typeof left;
   }
@@ -121,6 +144,10 @@ export async function startVersus(app: HTMLElement, id: VersusId): Promise<void>
   const canvas = document.getElementById('stage') as HTMLCanvasElement | null;
   if (!canvas) return;
   fitStageToVideo(canvas, video.videoWidth || 960, video.videoHeight || 480);
+  if (hud) {
+    hud.textContent =
+      `보정 완료! P1 ×${dualCal.p1.scale.toFixed(1)} · P2 ×${dualCal.p2.scale.toFixed(1)} — 60초 대전 시작!`;
+  }
 
   const score1 = document.getElementById('score1');
   const score2 = document.getElementById('score2');
@@ -141,30 +168,25 @@ export async function startVersus(app: HTMLElement, id: VersusId): Promise<void>
     right: right as never,
     attacks,
     timeLimitSec: 60,
+    overlay: tugOverlay,
     onEvent: (side, events) => {
       for (const e of events) {
         beep(e.type === 'bomb' || e.type === 'wrong' ? 'miss' : e.type === 'attack' ? 'win' : 'hit');
         if (e.type === 'attack' && attackEl) {
           attackEl.textContent = side === 'p1' ? 'P1의 방해!' : 'P2의 방해!';
           setTimeout(() => { if (attackEl) attackEl.textContent = ''; }, 1500);
+          // 파워 당기기는 상대 화면을 흔든다 (game.css .shake, reduced-motion은 CSS가 끔).
+          if (e.label.includes('파워') && canvas) {
+            canvas.classList.remove('shake');
+            void canvas.offsetWidth;
+            canvas.classList.add('shake');
+            setTimeout(() => canvas.classList.remove('shake'), 350);
+          }
         }
         if (hud && e.type !== 'attack') hud.textContent = `${e.label}`;
       }
-      // 수학 선착순: 한쪽이 맞추면 다른 쪽도 claimed 처리 (같은 라운드 공유)
-      if (id === 'versus-math' && mathL && mathR) {
-        if (events.some((e) => e.type === 'correct')) {
-          mathL.roundClaimed = true;
-          mathR.roundClaimed = true;
-          // 새로 낸 쪽만 false로 되돌리면 안 되므로, 다음 tick에서 각자 새 문제 후 리셋:
-          // 새 문제를 낸 쪽은 start가 아니므로 수동으로 상대방도 유지.
-          // 실제로는 각자 다른 문제를 풀어 선착순이 문제별이 아니라 시간별이 된다.
-          // v1에서는 먼저 푼 쪽이 +20, 3초 안에 푼 쪽도 +20 대신 +10이 되게 완화:
-          setTimeout(() => {
-            if (mathL) mathL.roundClaimed = false;
-            if (mathR) mathR.roundClaimed = false;
-          }, 3000);
-        }
-      }
+      // 수학 공유 라운드는 MathDashSide.tick 안에서 선착순을 처리하므로
+      // 매니저가 따로 claim을 만지지 않는다.
       // 줄다리기 점수는 줄 위치로도 표시
       if (id === 'versus-tug' && rope && hud) {
         const w = rope.winner();
