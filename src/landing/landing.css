@@ -106,6 +106,17 @@
   color: var(--lp-ink-soft);
 }
 
+/* 1인 게임 이동 버튼: 초록색 (파일 맨 뒤 배치로 .btn-small보다 우선) */
+.landing .landing__solo-link {
+  background: var(--lp-leaf-deep);
+  border-color: var(--lp-leaf-deep);
+  color: #ffffff;
+}
+
+.landing .landing__solo-link:hover {
+  filter: brightness(1.08);
+}
+
 /* Shelf: 4 columns on desktop (12 cards = 4x3), 2 on tablet, 1 on phones */
 .landing__grid {
   display: grid;
