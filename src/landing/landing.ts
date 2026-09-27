@@ -100,9 +100,20 @@ function artFor(id: LandingGame['id']): string {
       + close;
   }
   // 풍선 대전: 풍선 + 줄
+  if (id === 'versus-balloon') {
+    return open
+      + `<line x1="100" y1="105" x2="100" y2="140" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>`
+      + `<ellipse cx="100" cy="70" rx="34" ry="40" fill="#ff71ce" stroke="#22303c" stroke-width="6"/>`
+      + close;
+  }
+  // 좀비 대전: 다가오는 좀비 얼굴
   return open
-    + `<line x1="100" y1="105" x2="100" y2="140" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>`
-    + `<ellipse cx="100" cy="70" rx="34" ry="40" fill="#ff71ce" stroke="#22303c" stroke-width="6"/>`
+    + `<rect x="55" y="35" width="90" height="90" rx="18" fill="#3d9e57" stroke="#22303c" stroke-width="6"/>`
+    + `<circle cx="85" cy="75" r="10" fill="#ffffff"/>`
+    + `<circle cx="115" cy="75" r="10" fill="#ffffff"/>`
+    + `<circle cx="85" cy="76" r="4" fill="#22303c"/>`
+    + `<circle cx="115" cy="76" r="4" fill="#22303c"/>`
+    + `<path d="M80 105 Q100 95 120 105" fill="none" stroke="#22303c" stroke-width="5" stroke-linecap="round"/>`
     + close;
 }
 

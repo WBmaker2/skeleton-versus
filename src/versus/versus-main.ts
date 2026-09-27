@@ -34,19 +34,21 @@ export async function startVersus(app: HTMLElement, id: VersusId): Promise<void>
     `<div class="side p2">P2 <strong id="score2">0</strong></div></div>` +
     `<p id="attack" class="versus-attack" aria-live="polite"></p>` +
     `<div class="stage-wrap"><div class="stage-frame"><video id="cam" playsinline muted></video><canvas id="stage" width="960" height="480"></canvas></div>` +
-    `<div id="calib" class="overlay overlay-float"><p id="calibmsg">둘이 함께 T자세로 서주세요 (5초)</p><button id="skip" class="btn btn-pulse">바로 대전 시작</button></div>` +
+    `<div id="calib" class="overlay overlay-float"><p id="calibmsg">둘이 함께 T자세로 서주세요 (5초)</p><p>서로 1m 이상 띄어 서세요 (중앙선을 넘으면 점수가 멈춰요)</p><button id="skip" class="btn btn-pulse">바로 대전 시작</button></div>` +
     `<div id="result" class="overlay overlay-float" hidden></div></div>` +
     `<p id="hud" class="versus-hint">준비 중… 카메라 앞에 둘이 나란히 서세요 (2.5~3.5m).</p>` +
     `<div class="camrow"><label for="camsel">카메라</label><select id="camsel"></select>` +
     `<button id="retry" class="btn btn-accent" hidden>카메라 다시 찾기</button></div>` +
     `</main></div></div>`;
 
-  // 게임 방법은 간단 모달로
+  // 게임 방법은 간단 모달로 (중앙선 안전 수칙은 전 종목 공통으로 덧붙인다).
   app.querySelector('#howto')?.addEventListener('click', async () => {
     const { openModal } = await import('../ui/modal');
     openModal({
       title: `${NAMES[id]} 게임 방법`,
-      bodyHTML: `<ol>` + (HELP[id] ?? []).map((s) => `<li>${s}</li>`).join('') + `</ol>`
+      bodyHTML:
+        `<ol>` + (HELP[id] ?? []).map((s) => `<li>${s}</li>`).join('') +
+        `<li>중앙선을 넘으면 점수가 멈춰요 (서로 1m 이상 띄어 서세요)</li></ol>`
     });
   });
 

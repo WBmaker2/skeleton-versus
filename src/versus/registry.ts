@@ -16,6 +16,7 @@ import { ConstellDuelSide, SharedConstellation } from '../versus-games/constella
 import { AbcDuelSide, SharedAbcRound } from '../versus-games/abc-duel';
 import { DanceDuelSide, SharedDanceBeat } from '../versus-games/dance-duel';
 import { BalloonDuelSide, SharedBalloonSky } from '../versus-games/balloon-duel';
+import { ZombieDuelSide, SharedZombieHorde } from '../versus-games/zombie-duel';
 
 export interface VersusSetup {
   left: VersusSideGame;
@@ -137,6 +138,16 @@ function balloonFactory(attacks: AttackBus): VersusSetup {
   return { left: l, right: r };
 }
 
+function zombieFactory(attacks: AttackBus): VersusSetup {
+  // 양쪽이 같은 순서로 같은 줄에 좀비를 받고 좌우 대칭으로 나온다.
+  const horde = new SharedZombieHorde();
+  const l = new ZombieDuelSide('p1', attacks, horde);
+  const r = new ZombieDuelSide('p2', attacks, horde);
+  l.start();
+  r.start();
+  return { left: l, right: r };
+}
+
 export const VERSUS_REGISTRY: Record<VersusId, VersusFactory> = {
   'versus-fruit': fruitFactory,
   'versus-tug': tugFactory,
@@ -146,5 +157,6 @@ export const VERSUS_REGISTRY: Record<VersusId, VersusFactory> = {
   'versus-duo': constellFactory,
   'versus-abc': abcFactory,
   'versus-dance': danceFactory,
-  'versus-balloon': balloonFactory
+  'versus-balloon': balloonFactory,
+  'versus-zombie': zombieFactory
 };

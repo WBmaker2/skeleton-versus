@@ -7,16 +7,19 @@ import { constellDuelMeta } from '../versus-games/constellation-duel/meta';
 import { abcDuelMeta } from '../versus-games/abc-duel/meta';
 import { danceDuelMeta } from '../versus-games/dance-duel/meta';
 import { balloonDuelMeta } from '../versus-games/balloon-duel/meta';
+import { zombieDuelMeta } from '../versus-games/zombie-duel/meta';
 
 export const VERSUS_METAS = [
   fruitDuelMeta, squatTugMeta, mathDashMeta,
   starDuelMeta, simonDuelMeta, constellDuelMeta,
-  abcDuelMeta, danceDuelMeta, balloonDuelMeta
+  abcDuelMeta, danceDuelMeta, balloonDuelMeta,
+  zombieDuelMeta
 ];
 export type VersusId =
   | 'versus-fruit' | 'versus-tug' | 'versus-math'
   | 'versus-star' | 'versus-simon' | 'versus-duo'
-  | 'versus-abc' | 'versus-dance' | 'versus-balloon';
+  | 'versus-abc' | 'versus-dance' | 'versus-balloon'
+  | 'versus-zombie';
 
 export function isVersusId(id: string): id is VersusId {
   return (VERSUS_METAS as Array<{ id: string }>).some((m) => m.id === id);

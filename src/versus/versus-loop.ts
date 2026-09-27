@@ -9,6 +9,7 @@ import { splitStable, type SplitPoses } from './split';
 import type { AttackBus } from './attack';
 import { drawVersusChrome, withSideClip } from './versus-stage';
 import { drawSkeleton } from '../ui/renderer';
+import { bodyCenterX } from '../pose/geometry';
 import {
   drawParticles, reducedMotion, spawnBurst, tickParticles,
   CHEER_COLORS, OUCH_COLORS, type Particle
@@ -76,6 +77,9 @@ export class VersusLoop {
   private static readonly LOW_FPS = 25;
   private static readonly RECOVER_FPS = 30;
   private static readonly LOW_MS = 3000;
+  // 중앙선 침범 여유 (px). 몸통 중심이 이만큼 넘어가야 침범으로 본다.
+  // 손을 뻗는 동작에는 반응하지 않게 몸통(어깨·골반) 기준이다.
+  private static readonly CENTER_MARGIN_PX = 20;
 
   get elapsedSec(): number {
     if (!this.running || this.startedAt === 0) return 0;
@@ -130,17 +134,22 @@ export class VersusLoop {
       const split = splitStable(frames, w, this.prevSplit);
       this.prevSplit = split;
       this.opts.attacks.tick(dt);
+      // 중앙선 가드: 자기 반쪽을 벗어나면 그쪽만 점수를 멈춘다 (둘이 부딪치지 않게).
+      const crossL = split.bothVisible && this.crossed('p1', split.left, w);
+      const crossR = split.bothVisible && this.crossed('p2', split.right, w);
       if (!split.bothVisible) {
         this.opts.onHint?.('둘이 다 보이게 옆으로 비켜주세요!');
+      } else if (crossL || crossR) {
+        this.opts.onHint?.('중앙선을 넘지 마세요! 제자리로 돌아가세요!');
       } else {
         this.opts.onHint?.('');
       }
-      if (split.left) {
+      if (split.left && !crossL) {
         const ev = this.opts.left.tick(split.left, dt);
         if (ev.length) this.opts.onEvent?.('p1', ev);
         this.celebrate('p1', ev);
       }
-      if (split.right) {
+      if (split.right && !crossR) {
         const ev = this.opts.right.tick(split.right, dt);
         if (ev.length) this.opts.onEvent?.('p2', ev);
         this.celebrate('p2', ev);
@@ -190,9 +199,13 @@ export class VersusLoop {
     const cy = h * 0.3;
     const n = (k: number): number => Math.max(1, Math.round(k * this.particleScale));
     for (const e of events) {
-      if (e.type === 'slice' || e.type === 'correct' || e.type === 'beat' || e.type === 'attack') {
+      if (
+        e.type === 'slice' || e.type === 'correct' || e.type === 'beat' ||
+        e.type === 'attack' || e.type === 'catch' || e.type === 'bump' ||
+        e.type === 'dodge' || e.type === 'pair' || e.type === 'pose-ok'
+      ) {
         spawnBurst(this.particles, cx, cy, n(18), CHEER_COLORS);
-      } else if (e.type === 'bomb' || e.type === 'wrong') {
+      } else if (e.type === 'bomb' || e.type === 'wrong' || e.type === 'caught') {
         spawnBurst(this.particles, cx, cy, n(10), OUCH_COLORS);
         if (e.type === 'bomb') this.shake();
       }
@@ -208,6 +221,15 @@ export class VersusLoop {
   private sampleFps(nowMs: number): void {
     this.frameStamps.push(nowMs);
     if (this.frameStamps.length > 61) this.frameStamps.shift();
+  }
+
+  // 중앙선 침범 여부. 몸통 중심이 상대 반쪽으로 넘어갔는지 본다.
+  private crossed(side: 'p1' | 'p2', frame: PoseFrame | null, width: number): boolean {
+    if (!frame) return false;
+    const cx = bodyCenterX(frame);
+    const mid = width / 2;
+    const margin = VersusLoop.CENTER_MARGIN_PX;
+    return side === 'p1' ? cx > mid + margin : cx < mid - margin;
   }
 
   // 우하단 fps 표시 (DOM 변경 없이 캔버스에 작게).

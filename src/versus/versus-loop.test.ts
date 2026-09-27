@@ -24,6 +24,28 @@ function dualFrames(): PoseFrame[] {
   return [one(160), one(480)];
 }
 
+// 코는 왼쪽인데 몸통이 중앙선을 넘은 프레임 (침범 상황 재현).
+function crossingFrames(): PoseFrame[] {
+  const kp = (name: string, x: number, y: number) => ({ name, x, y, score: 1 });
+  const crosser: PoseFrame = {
+    width: 640, height: 480, timestamp: 0,
+    keypoints: [
+      kp('nose', 100, 100),
+      kp('left_shoulder', 480, 200), kp('right_shoulder', 520, 200),
+      kp('left_hip', 480, 300), kp('right_hip', 520, 300)
+    ]
+  };
+  const normal: PoseFrame = {
+    width: 640, height: 480, timestamp: 0,
+    keypoints: [
+      kp('nose', 480, 100),
+      kp('left_shoulder', 460, 200), kp('right_shoulder', 500, 200),
+      kp('left_hip', 460, 300), kp('right_hip', 500, 300)
+    ]
+  };
+  return [crosser, normal];
+}
+
 function fakeSide(events: GameEvent[][]): VersusSideGame & { calls: number } {
   const side = {
     board: new ScoreBoard(),
@@ -143,6 +165,74 @@ describe('VersusLoop celebrate', () => {
     expect(loop.fps).toBeGreaterThan(30);
     expect(loop.degraded).toBe(false);
     expect(loop.particleScale).toBe(1);
+    loop.stop();
+  });
+
+  it('중앙선을 넘은 쪽은 점수가 멈추고 경고가 나온다', async () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal('requestAnimationFrame', vi.fn((cb: FrameRequestCallback) => {
+      frames.push(cb);
+      return frames.length;
+    }));
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+    const engine = { estimateDual: async () => crossingFrames() } as unknown as MediaPipeDualAdapter;
+    const left = fakeSide([]);
+    const right = fakeSide([]);
+    const canvas = document.createElement('canvas');
+    const hints: string[] = [];
+    const loop = new VersusLoop({
+      video: document.createElement('video'),
+      canvas,
+      engine,
+      left,
+      right,
+      attacks: new AttackBus(),
+      timeLimitSec: 3600,
+      onHint: (msg) => { hints.push(msg); }
+    });
+    loop.start();
+    for (let i = 0; i < 3; i++) {
+      frames[frames.length - 1](50000 + i * 16);
+      await new Promise((r) => setTimeout(r, 0));
+    }
+    // 왼쪽(침범)은 tick 안 됨, 오른쪽은 정상 진행
+    expect(left.calls).toBe(0);
+    expect(right.calls).toBeGreaterThan(0);
+    expect(hints).toContain('중앙선을 넘지 마세요! 제자리로 돌아가세요!');
+    loop.stop();
+  });
+
+  it('제자리로 돌아오면 다시 점수가 오른다', async () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal('requestAnimationFrame', vi.fn((cb: FrameRequestCallback) => {
+      frames.push(cb);
+      return frames.length;
+    }));
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+    let crossed = true;
+    const engine = {
+      estimateDual: async () => (crossed ? crossingFrames() : dualFrames())
+    } as unknown as MediaPipeDualAdapter;
+    const left = fakeSide([]);
+    const right = fakeSide([]);
+    const canvas = document.createElement('canvas');
+    const loop = new VersusLoop({
+      video: document.createElement('video'),
+      canvas,
+      engine,
+      left,
+      right,
+      attacks: new AttackBus(),
+      timeLimitSec: 3600
+    });
+    loop.start();
+    frames[frames.length - 1](60000);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(left.calls).toBe(0);
+    crossed = false;
+    frames[frames.length - 1](60016);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(left.calls).toBeGreaterThan(0);
     loop.stop();
   });
 });
