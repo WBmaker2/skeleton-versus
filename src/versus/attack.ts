@@ -8,8 +8,11 @@ export type AttackKind =
   | 'fog'         // 안개 3초 (수학·사이먼·ABC·별자리)
   | 'dark'        // 먹별 1개 (즉시 스폰, 별잡기)
   | 'gift'        // 풍선 선물 1개 (즉시 스폰, 풍선)
-  | 'rush'        // 좀비 가속 5초 (상대 좀비 1.5배)
-  | 'offbeat';    // 박자 단축 5초 (댄스 박자 1.8초→1.2초)
+  | 'rush'        // 좀비·레이저 가속 5초 (상대 속도 1.5배)
+  | 'offbeat'     // 박자 단축 5초 (댄스 박자 1.8초→1.2초)
+  | 'tiny'        // 타겟 축소 5초 (펀치, 상대 타겟 0.7배)
+  | 'strict'      // 박수 판정 강화 5초 (박수, 합침 기준 0.3→0.2배율)
+  | 'shake';      // 화면 흔들림 3초 (균형·파워, 집중 방해)
 
 export interface Attack {
   kind: AttackKind;
@@ -24,7 +27,10 @@ const DUR: Record<AttackKind, number> = {
   dark: 0, // 즉시 1개 스폰이라 지속 없음
   gift: 0, // 즉시 1개 스폰이라 지속 없음
   rush: 5000,
-  offbeat: 5000
+  offbeat: 5000,
+  tiny: 5000,
+  strict: 5000,
+  shake: 3000
 };
 
 export const ATTACK_COOL_MS = 5000;

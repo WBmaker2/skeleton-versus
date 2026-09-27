@@ -76,12 +76,28 @@ export function wristPattern(frame: PoseFrame): PoseMove {
 
 // 양손 완화 판정 (사이먼 전용): 양쪽 손목이 각자 어깨보다 10px 이상 위면
 // 모으거나 벌려도 양손으로 인정한다.
-export function bothUp(frame: PoseFrame): boolean {
-  const lw = getByName(frame, 'left_wrist');
+export function bothUp(frame: PoseFrame): boolean {  const lw = getByName(frame, 'left_wrist');
   const rw = getByName(frame, 'right_wrist');
   const ls = getByName(frame, 'left_shoulder');
   const rs = getByName(frame, 'right_shoulder');
   const raised = (w: typeof lw, s: typeof ls): boolean =>
     !!w && !!s && (w.score ?? 0) > 0.3 && (s.score ?? 0) > 0.3 && w.y < s.y - 10;
   return raised(lw, ls) && raised(rw, rs);
+}
+
+export interface TrackedPoint {
+  x: number;
+  y: number;
+}
+
+// 화면상 이동 속도 (어깨너비/s). 카메라 거리가 달라도 공정하게 비교된다.
+// 펀치·발차기 같은 타격 판정용.
+export function pointSpeed(
+  prev: TrackedPoint | null,
+  cur: TrackedPoint | null,
+  dtMs: number,
+  shoulderWidth: number
+): number {
+  if (!prev || !cur || dtMs <= 0 || shoulderWidth < 1) return 0;
+  return Math.hypot(cur.x - prev.x, cur.y - prev.y) / shoulderWidth / (dtMs / 1000);
 }

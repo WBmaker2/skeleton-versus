@@ -17,6 +17,10 @@ import { AbcDuelSide, SharedAbcRound } from '../versus-games/abc-duel';
 import { DanceDuelSide, SharedDanceBeat } from '../versus-games/dance-duel';
 import { BalloonDuelSide, SharedBalloonSky } from '../versus-games/balloon-duel';
 import { ZombieDuelSide, SharedZombieHorde } from '../versus-games/zombie-duel';
+import { PunchDuelSide, SharedPunchRing } from '../versus-games/punch-duel';
+import { ClapDuelSide } from '../versus-games/clap-duel';
+import { BalanceDuelSide } from '../versus-games/balance-duel';
+import { MemoryDuelSide, SharedMemoryDeck } from '../versus-games/memory-duel';
 
 export interface VersusSetup {
   left: VersusSideGame;
@@ -148,6 +152,44 @@ function zombieFactory(attacks: AttackBus): VersusSetup {
   return { left: l, right: r };
 }
 
+function punchFactory(attacks: AttackBus, cal: DualCalibration): VersusSetup {
+  // 양쪽이 같은 순서로 타겟을 받고 위치는 좌우 대칭으로 나온다.
+  const ring = new SharedPunchRing();
+  const l = new PunchDuelSide('p1', attacks, ring);
+  const r = new PunchDuelSide('p2', attacks, ring);
+  l.radiusScale = cal.p1.scale;
+  r.radiusScale = cal.p2.scale;
+  l.start();
+  r.start();
+  return { left: l, right: r };
+}
+
+function clapFactory(attacks: AttackBus): VersusSetup {
+  const l = new ClapDuelSide('p1', attacks);
+  const r = new ClapDuelSide('p2', attacks);
+  l.start();
+  r.start();
+  return { left: l, right: r };
+}
+
+function balanceFactory(attacks: AttackBus): VersusSetup {
+  const l = new BalanceDuelSide('p1', attacks);
+  const r = new BalanceDuelSide('p2', attacks);
+  l.start();
+  r.start();
+  return { left: l, right: r };
+}
+
+function memoryFactory(attacks: AttackBus): VersusSetup {
+  // 양쪽이 같은 3개 포즈 순서를 외워 재현하는 공유 문제.
+  const deck = new SharedMemoryDeck();
+  const l = new MemoryDuelSide('p1', attacks, deck);
+  const r = new MemoryDuelSide('p2', attacks, deck);
+  l.start();
+  r.start();
+  return { left: l, right: r };
+}
+
 export const VERSUS_REGISTRY: Record<VersusId, VersusFactory> = {
   'versus-fruit': fruitFactory,
   'versus-tug': tugFactory,
@@ -158,5 +200,9 @@ export const VERSUS_REGISTRY: Record<VersusId, VersusFactory> = {
   'versus-abc': abcFactory,
   'versus-dance': danceFactory,
   'versus-balloon': balloonFactory,
-  'versus-zombie': zombieFactory
+  'versus-zombie': zombieFactory,
+  'versus-punch': punchFactory,
+  'versus-clap': clapFactory,
+  'versus-balance': balanceFactory,
+  'versus-memory': memoryFactory
 };

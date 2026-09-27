@@ -202,10 +202,15 @@ export class VersusLoop {
       if (
         e.type === 'slice' || e.type === 'correct' || e.type === 'beat' ||
         e.type === 'attack' || e.type === 'catch' || e.type === 'bump' ||
-        e.type === 'dodge' || e.type === 'pair' || e.type === 'pose-ok'
+        e.type === 'dodge' || e.type === 'pair' || e.type === 'pose-ok' ||
+        e.type === 'punch' || e.type === 'clap' || e.type === 'balance-tick' ||
+        e.type === 'memory' || e.type === 'pull' || e.type === 'sprint'
       ) {
         spawnBurst(this.particles, cx, cy, n(18), CHEER_COLORS);
-      } else if (e.type === 'bomb' || e.type === 'wrong' || e.type === 'caught') {
+      } else if (
+        e.type === 'bomb' || e.type === 'wrong' || e.type === 'caught' ||
+        e.type === 'laser-hit'
+      ) {
         spawnBurst(this.particles, cx, cy, n(10), OUCH_COLORS);
         if (e.type === 'bomb') this.shake();
       }

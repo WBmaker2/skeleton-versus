@@ -32,6 +32,22 @@ describe('AttackBus', () => {
     expect(bus.takeGift('p2')).toBe(1);
     expect(bus.takeGift('p2')).toBe(0);
   });
+  it('3차 방해 시간을 지킨다 (tiny·strict 5초·shake 3초)', () => {
+    const bus = new AttackBus();
+    bus.send('tiny', 'p1');
+    expect(bus.onP2?.kind).toBe('tiny');
+    bus.tick(5100);
+    expect(bus.onP2).toBeNull();
+    const bus2 = new AttackBus();
+    bus2.send('strict', 'p2');
+    bus2.tick(5100);
+    expect(bus2.onP1).toBeNull();
+    const bus3 = new AttackBus();
+    bus3.send('shake', 'p1');
+    expect(bus3.onP2?.kind).toBe('shake');
+    bus3.tick(3100);
+    expect(bus3.onP2).toBeNull();
+  });
   it('지속형 방해 시간을 지킨다 (rush 5초·offbeat 5초)', () => {
     const bus2 = new AttackBus();
     bus2.send('rush', 'p1');

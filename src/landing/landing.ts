@@ -107,13 +107,51 @@ function artFor(id: LandingGame['id']): string {
       + close;
   }
   // 좀비 대전: 다가오는 좀비 얼굴
+  if (id === 'versus-zombie') {
+    return open
+      + `<rect x="55" y="35" width="90" height="90" rx="18" fill="#3d9e57" stroke="#22303c" stroke-width="6"/>`
+      + `<circle cx="85" cy="75" r="10" fill="#ffffff"/>`
+      + `<circle cx="115" cy="75" r="10" fill="#ffffff"/>`
+      + `<circle cx="85" cy="76" r="4" fill="#22303c"/>`
+      + `<circle cx="115" cy="76" r="4" fill="#22303c"/>`
+      + `<path d="M80 105 Q100 95 120 105" fill="none" stroke="#22303c" stroke-width="5" stroke-linecap="round"/>`
+      + close;
+  }
+  if (id === 'versus-punch') {
+    // 펀치 대전: 주먹
+    return open
+      + `<circle cx="100" cy="85" r="34" fill="#ffffff" stroke="#22303c" stroke-width="6"/>`
+      + `<path d="M78 70 h44 M78 85 h44 M78 100 h44" stroke="#ff71ce" stroke-width="7" stroke-linecap="round"/>`
+      + `<path d="M150 60 L175 85 L150 110" fill="none" stroke="#dfff00" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>`
+      + close;
+  }
+  if (id === 'versus-clap') {
+    // 박수 대전: 마주치는 양손
+    return open
+      + `<ellipse cx="70" cy="85" rx="18" ry="26" fill="#ffffff" stroke="#22303c" stroke-width="6"/>`
+      + `<ellipse cx="130" cy="85" rx="18" ry="26" fill="#ffffff" stroke="#22303c" stroke-width="6"/>`
+      + `<path d="M100 45 v-12 M100 127 v12 M130 55 l9 -9 M70 55 l-9 -9" stroke="#dfff00" stroke-width="6" stroke-linecap="round"/>`
+      + close;
+  }
+  if (id === 'versus-balance') {
+    // 균형 대전: 한발로 서는 막대인간
+    return open
+      + `<circle cx="100" cy="35" r="13" fill="#ffffff" stroke="#22303c" stroke-width="5"/>`
+      + `<line x1="100" y1="50" x2="100" y2="95" stroke="#00ffff" stroke-width="7" stroke-linecap="round"/>`
+      + `<line x1="100" y1="62" x2="70" y2="80" stroke="#00ffff" stroke-width="7" stroke-linecap="round"/>`
+      + `<line x1="100" y1="62" x2="130" y2="80" stroke="#00ffff" stroke-width="7" stroke-linecap="round"/>`
+      + `<line x1="100" y1="95" x2="100" y2="135" stroke="#00ffff" stroke-width="7" stroke-linecap="round"/>`
+      + `<line x1="20" y1="140" x2="180" y2="140" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>`
+      + close;
+  }
+  // 기억 릴레이 대전: 1-2-3 순서 카드
   return open
-    + `<rect x="55" y="35" width="90" height="90" rx="18" fill="#3d9e57" stroke="#22303c" stroke-width="6"/>`
-    + `<circle cx="85" cy="75" r="10" fill="#ffffff"/>`
-    + `<circle cx="115" cy="75" r="10" fill="#ffffff"/>`
-    + `<circle cx="85" cy="76" r="4" fill="#22303c"/>`
-    + `<circle cx="115" cy="76" r="4" fill="#22303c"/>`
-    + `<path d="M80 105 Q100 95 120 105" fill="none" stroke="#22303c" stroke-width="5" stroke-linecap="round"/>`
+    + `<rect x="30" y="55" width="40" height="50" rx="8" fill="#dfff00" stroke="#22303c" stroke-width="5"/>`
+    + `<rect x="80" y="55" width="40" height="50" rx="8" fill="none" stroke="#ffffff" stroke-width="5"/>`
+    + `<rect x="130" y="55" width="40" height="50" rx="8" fill="none" stroke="#ffffff" stroke-width="5"/>`
+    + `<text x="50" y="90" text-anchor="middle" font-size="28" font-weight="800" fill="#22303c" font-family="sans-serif">1</text>`
+    + `<text x="100" y="90" text-anchor="middle" font-size="28" font-weight="800" fill="#ffffff" font-family="sans-serif">2</text>`
+    + `<text x="150" y="90" text-anchor="middle" font-size="28" font-weight="800" fill="#ffffff" font-family="sans-serif">3</text>`
     + close;
 }
 

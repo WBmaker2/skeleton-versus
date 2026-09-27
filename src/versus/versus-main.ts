@@ -149,8 +149,8 @@ export async function startVersus(app: HTMLElement, id: VersusId): Promise<void>
         if (e.type === 'attack' && attackEl) {
           attackEl.textContent = side === 'p1' ? 'P1의 방해!' : 'P2의 방해!';
           setTimeout(() => { if (attackEl) attackEl.textContent = ''; }, 1500);
-          // 파워 당기기는 상대 화면을 흔든다 (game.css .shake, reduced-motion은 CSS가 끔).
-          if (e.label.includes('파워') && canvas) {
+          // 파워 당기기·흔들림 공격은 상대 화면을 흔든다 (game.css .shake, reduced-motion은 CSS가 끔).
+          if ((e.label.includes('파워') || e.label.includes('흔들')) && canvas) {
             canvas.classList.remove('shake');
             void canvas.offsetWidth;
             canvas.classList.add('shake');
