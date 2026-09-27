@@ -44,10 +44,50 @@
 }
 
 .landing__sub {
-  margin: 0 0 var(--lp-space-8);
+  margin: 0 0 var(--lp-space-4);
   max-width: 62ch;
   font-size: var(--lp-text-body);
   line-height: 1.65;
+  color: var(--lp-ink-soft);
+}
+
+/* 작은 보조 버튼 (modal.css보다 먼저 필요해서 랜딩 범위로 중복 정의) */
+.landing .btn-small {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 0 var(--lp-space-4);
+  font-family: var(--lp-font-body);
+  font-size: var(--lp-text-badge);
+  font-weight: 600;
+  color: var(--lp-ink-soft);
+  background: transparent;
+  border: 1px solid var(--lp-line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.landing .btn-small:focus-visible {
+  outline: var(--lp-focus-ring);
+  outline-offset: 2px;
+}
+
+/* 카테고리 필터 + 랜덤 대전 */
+.landing__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--lp-space-2);
+  margin: 0 0 var(--lp-space-6);
+}
+
+.landing__filter[aria-pressed="true"] {
+  background: var(--lp-leaf-deep);
+  color: #ffffff;
+}
+
+.landing__count {
+  margin: var(--lp-space-4) 0 0;
+  font-size: var(--lp-text-body);
   color: var(--lp-ink-soft);
 }
 

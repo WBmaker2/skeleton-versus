@@ -1,7 +1,7 @@
 // src/versus/versus-main.ts
 // 2인 대전 화면 실행. 카메라 1대 -> 듀얼 엔진 -> VersusLoop 60초.
 import { AttackBus } from './attack';
-import { VersusLoop } from './versus-loop';
+import { VersusLoop, BOTH_VISIBLE_HINT } from './versus-loop';
 import { splitPoses } from './split';
 import { calibrateDual } from './dual-calibration';
 import { recordLabel, saveResult, type Winner } from './record';
@@ -165,7 +165,13 @@ export async function startVersus(app: HTMLElement, id: VersusId): Promise<void>
       refresh();
     },
     onHint: (msg) => {
-      if (msg && hud) hud.textContent = msg;
+      if (!hud) return;
+      // 혼자 연습 중이면 내 점수만 오르니 그대로 하라는 안내를 덧붙인다.
+      if (msg === BOTH_VISIBLE_HINT) {
+        hud.textContent = `${msg} 혼자 연습 중이면 내 점수만 올라가요!`;
+      } else if (msg) {
+        hud.textContent = msg;
+      }
     },
     onTimeUp: () => {
       const result = document.getElementById('result');
@@ -187,6 +193,7 @@ export async function startVersus(app: HTMLElement, id: VersusId): Promise<void>
         `<p><strong>${title}</strong></p>` +
         `<p>P1 ${lScore} : ${rScore} P2</p>` +
         `<p>${recordLabel(rec)}</p>` +
+        `<p>최저 ${loop.minFps > 0 ? loop.minFps.toFixed(0) : '-'}fps</p>` +
         `<button type="button" id="again" class="btn btn-pulse">다시 대전</button>`;
       result.hidden = false;
       result.querySelector('#again')?.addEventListener('click', () => {

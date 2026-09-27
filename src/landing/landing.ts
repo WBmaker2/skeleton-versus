@@ -21,6 +21,37 @@ export const LANDING_GAMES: LandingGame[] = VERSUS_METAS.map((m) => ({
   effect: m.effect
 }));
 
+// 대전 고르기 화면: 카테고리 필터 + 랜덤 대전.
+export type DuelCat = 'speed' | 'power' | 'accuracy' | 'brain';
+
+export const CAT_LABEL: Record<DuelCat, string> = {
+  speed: '반응·순발력',
+  power: '힘·지구력',
+  accuracy: '정확도·균형',
+  brain: '두뇌·리듬'
+};
+
+const CAT_OF: Record<VersusId, DuelCat> = {
+  'versus-fruit': 'speed', 'versus-star': 'speed', 'versus-balloon': 'speed',
+  'versus-zombie': 'speed', 'versus-punch': 'speed', 'versus-clap': 'speed',
+  'versus-tug': 'power', 'versus-run': 'power', 'versus-power': 'power',
+  'versus-abc': 'accuracy', 'versus-balance': 'accuracy', 'versus-laser': 'accuracy',
+  'versus-math': 'brain', 'versus-simon': 'brain', 'versus-duo': 'brain',
+  'versus-dance': 'brain', 'versus-memory': 'brain'
+};
+
+export type CatFilter = DuelCat | 'all';
+
+export function filterGames(filter: CatFilter): LandingGame[] {
+  if (filter === 'all') return LANDING_GAMES;
+  return LANDING_GAMES.filter((g) => CAT_OF[g.id] === filter);
+}
+
+export function pickRandomGame(filter: CatFilter): LandingGame {
+  const pool = filterGames(filter);
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
 function artFor(id: LandingGame['id']): string {
   const open = `<svg class="art-fallback" viewBox="0 0 200 160" aria-hidden="true" focusable="false">`;
   const close = `</svg>`;
@@ -193,19 +224,53 @@ function card(game: LandingGame): string {
 
 export function renderLanding(app: HTMLElement): void {
   document.title = '대전 고르기 | Skeleton Versus';
+  const filters: Array<{ id: CatFilter; label: string }> = [
+    { id: 'all', label: '전체' },
+    { id: 'speed', label: CAT_LABEL.speed },
+    { id: 'power', label: CAT_LABEL.power },
+    { id: 'accuracy', label: CAT_LABEL.accuracy },
+    { id: 'brain', label: CAT_LABEL.brain }
+  ];
   app.innerHTML =
     `<div class="landing"><div class="landing__inner">`
     + `<header><p class="landing__kicker">카메라 1대 · 둘이 함께 · 60초 승부</p>`
     + `<h1 class="landing__title">어떤 대결을 할까?</h1>`
-    + `<p class="landing__sub">왼쪽에 한 명, 오른쪽에 한 명. 카메라 앞에 나란히 서서 시작하세요 (2.5~3.5m).</p></header>`
-    + `<main aria-label="대전 목록"><ul class="landing__grid">`
-    + LANDING_GAMES.map(card).join('')
-    + `</ul></main>`
-    + `<footer><p class="landing__foot">TIP: 둘이 다 화면에 보여야 점수가 올라가요. `
+    + `<p class="landing__sub">왼쪽에 한 명, 오른쪽에 한 명. 카메라 앞에 나란히 서서 시작하세요 (2.5~3.5m). 혼자서도 연습할 수 있어요.</p>`
+    + `<div class="landing__filters" role="group" aria-label="종목 고르기">`
+    + filters.map((f) =>
+      `<button type="button" class="btn-small landing__filter" data-filter="${f.id}" aria-pressed="${f.id === 'all'}">${f.label}</button>`
+    ).join('')
+    + `<button type="button" id="random-duel" class="btn-small btn-pulse">랜덤 대전</button>`
+    + `</div></header>`
+    + `<main aria-label="대전 목록"><ul class="landing__grid" id="duel-grid">`
+    + `</ul><p class="landing__count" id="duel-count" aria-live="polite"></p></main>`
+    + `<footer><p class="landing__foot">TIP: 둘이 다 화면에 보여야 점수가 올라가요. 한 명만 보여도 내 점수는 올라가니 혼자 연습해 보세요. `
     + `<button type="button" id="updatelog" class="btn-small">업데이트 내역</button></p>`
     + `<p class="landing__readiness" id="readiness">인식 모델 확인 중…</p></footer>`
     + `</div></div>`;
-  wireUpdateLog();
+  let current: CatFilter = 'all';
+  const paint = (): void => {
+    const grid = app.querySelector('#duel-grid');
+    const count = app.querySelector('#duel-count');
+    const list = filterGames(current);
+    if (grid) grid.innerHTML = list.map(card).join('');
+    if (count) count.textContent = `모두 ${list.length}종목`;
+    app.querySelectorAll<HTMLButtonElement>('.landing__filter').forEach((b) => {
+      b.setAttribute('aria-pressed', String(b.dataset.filter === current));
+    });
+  };
+  app.querySelectorAll<HTMLButtonElement>('.landing__filter').forEach((b) => {
+    b.addEventListener('click', () => {
+      current = (b.dataset.filter ?? 'all') as CatFilter;
+      paint();
+    });
+  });
+  app.querySelector('#random-duel')?.addEventListener('click', () => {
+    const pick = pickRandomGame(current);
+    window.location.hash = `#/${pick.id}`;
+  });
+  paint();
+  wireUpdateLog(app);
   void refreshReadiness(app);
 }
 

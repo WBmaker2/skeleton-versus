@@ -202,8 +202,7 @@ describe('VersusLoop celebrate', () => {
     loop.stop();
   });
 
-  it('제자리로 돌아오면 다시 점수가 오른다', async () => {
-    const frames: FrameRequestCallback[] = [];
+  it('제자리로 돌아오면 다시 점수가 오른다', async () => {    const frames: FrameRequestCallback[] = [];
     vi.stubGlobal('requestAnimationFrame', vi.fn((cb: FrameRequestCallback) => {
       frames.push(cb);
       return frames.length;
@@ -233,6 +232,37 @@ describe('VersusLoop celebrate', () => {
     frames[frames.length - 1](60016);
     await new Promise((r) => setTimeout(r, 0));
     expect(left.calls).toBeGreaterThan(0);
+    loop.stop();
+  });
+
+  it('웜업 이후 최저 fps를 기록한다', async () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.stubGlobal('requestAnimationFrame', vi.fn((cb: FrameRequestCallback) => {
+      frames.push(cb);
+      return frames.length;
+    }));
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+    const engine = { estimateDual: async () => dualFrames() } as unknown as MediaPipeDualAdapter;
+    const left = fakeSide([]);
+    const right = fakeSide([]);
+    const canvas = document.createElement('canvas');
+    const loop = new VersusLoop({
+      video: document.createElement('video'),
+      canvas,
+      engine,
+      left,
+      right,
+      attacks: new AttackBus(),
+      timeLimitSec: 3600
+    });
+    loop.start();
+    // 웜업(5초) 이후 16ms 간격 → fps 약 62
+    for (let i = 0; i < 20; i++) {
+      frames[frames.length - 1](200000 + i * 16);
+      await new Promise((r) => setTimeout(r, 0));
+    }
+    expect(loop.fps).toBeGreaterThan(30);
+    expect(loop.minFps).toBeGreaterThan(30);
     loop.stop();
   });
 });

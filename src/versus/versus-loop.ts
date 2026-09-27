@@ -10,6 +10,9 @@ import type { AttackBus } from './attack';
 import { drawVersusChrome, withSideClip } from './versus-stage';
 import { drawSkeleton } from '../ui/renderer';
 import { bodyCenterX } from '../pose/geometry';
+
+// 한 명만 보일 때 안내. versus-main에서 혼자 연습 문구를 덧붙여 쓴다.
+export const BOTH_VISIBLE_HINT = '둘이 다 보이게 옆으로 비켜주세요!';
 import {
   drawParticles, reducedMotion, spawnBurst, tickParticles,
   CHEER_COLORS, OUCH_COLORS, type Particle
@@ -74,6 +77,12 @@ export class VersusLoop {
     return this.lowMs >= VersusLoop.LOW_MS;
   }
 
+  // 웜업 5초 이후 최저 fps (결과 화면·QA 실측용).
+  get minFps(): number {
+    return this.minFpsValue;
+  }
+  private minFpsValue = 0;
+
   private static readonly LOW_FPS = 25;
   private static readonly RECOVER_FPS = 30;
   private static readonly LOW_MS = 3000;
@@ -106,6 +115,11 @@ export class VersusLoop {
       const dt = Math.min(100, Math.max(0, nowMs - this.lastMs));
       this.lastMs = nowMs;
       this.sampleFps(nowMs);
+      // 웜업 이후 최저 fps 기록 (QA 실측용).
+      if (nowMs - this.startedAt > 5000) {
+        const f = this.fps;
+        if (f > 0) this.minFpsValue = this.minFpsValue === 0 ? f : Math.min(this.minFpsValue, f);
+      }
       // 저사양 절전: 25fps 미만 3초 지속 → 추론 반으로·파티클 절반.
       // 30fps 이상 회복 시 원복 (히스테리시스로 떨림 방지).
       const fps = this.fps;
@@ -138,7 +152,7 @@ export class VersusLoop {
       const crossL = split.bothVisible && this.crossed('p1', split.left, w);
       const crossR = split.bothVisible && this.crossed('p2', split.right, w);
       if (!split.bothVisible) {
-        this.opts.onHint?.('둘이 다 보이게 옆으로 비켜주세요!');
+        this.opts.onHint?.(BOTH_VISIBLE_HINT);
       } else if (crossL || crossR) {
         this.opts.onHint?.('중앙선을 넘지 마세요! 제자리로 돌아가세요!');
       } else {
