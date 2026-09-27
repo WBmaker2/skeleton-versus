@@ -145,13 +145,38 @@ function artFor(id: LandingGame['id']): string {
       + close;
   }
   // 기억 릴레이 대전: 1-2-3 순서 카드
+  if (id === 'versus-memory') {
+    return open
+      + `<rect x="30" y="55" width="40" height="50" rx="8" fill="#dfff00" stroke="#22303c" stroke-width="5"/>`
+      + `<rect x="80" y="55" width="40" height="50" rx="8" fill="none" stroke="#ffffff" stroke-width="5"/>`
+      + `<rect x="130" y="55" width="40" height="50" rx="8" fill="none" stroke="#ffffff" stroke-width="5"/>`
+      + `<text x="50" y="90" text-anchor="middle" font-size="28" font-weight="800" fill="#22303c" font-family="sans-serif">1</text>`
+      + `<text x="100" y="90" text-anchor="middle" font-size="28" font-weight="800" fill="#ffffff" font-family="sans-serif">2</text>`
+      + `<text x="150" y="90" text-anchor="middle" font-size="28" font-weight="800" fill="#ffffff" font-family="sans-serif">3</text>`
+      + close;
+  }
+  if (id === 'versus-run') {
+    // 달리기 GP: 달리는 다리 + 거리
+    return open
+      + `<path d="M70 40 L60 90 L85 130 M130 40 L140 90 L115 130" fill="none" stroke="#00ffff" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`
+      + `<circle cx="100" cy="25" r="12" fill="#ffffff" stroke="#22303c" stroke-width="4"/>`
+      + `<text x="160" y="140" text-anchor="middle" font-size="24" font-weight="800" fill="#dfff00" font-family="sans-serif">m</text>`
+      + close;
+  }
+  if (id === 'versus-power') {
+    // 파워 줄다리기: 굽힌 팔
+    return open
+      + `<circle cx="100" cy="40" r="13" fill="#ffffff" stroke="#22303c" stroke-width="5"/>`
+      + `<line x1="100" y1="55" x2="100" y2="95" stroke="#ff71ce" stroke-width="8" stroke-linecap="round"/>`
+      + `<path d="M100 65 L65 95 L100 110" fill="none" stroke="#ff71ce" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`
+      + `<path d="M100 65 L135 95 L100 110" fill="none" stroke="#ff71ce" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`
+      + close;
+  }
+  // 레이저 대전: 가로 레이저 3줄
   return open
-    + `<rect x="30" y="55" width="40" height="50" rx="8" fill="#dfff00" stroke="#22303c" stroke-width="5"/>`
-    + `<rect x="80" y="55" width="40" height="50" rx="8" fill="none" stroke="#ffffff" stroke-width="5"/>`
-    + `<rect x="130" y="55" width="40" height="50" rx="8" fill="none" stroke="#ffffff" stroke-width="5"/>`
-    + `<text x="50" y="90" text-anchor="middle" font-size="28" font-weight="800" fill="#22303c" font-family="sans-serif">1</text>`
-    + `<text x="100" y="90" text-anchor="middle" font-size="28" font-weight="800" fill="#ffffff" font-family="sans-serif">2</text>`
-    + `<text x="150" y="90" text-anchor="middle" font-size="28" font-weight="800" fill="#ffffff" font-family="sans-serif">3</text>`
+    + `<line x1="25" y1="45" x2="175" y2="45" stroke="#ff3b30" stroke-width="7" stroke-linecap="round"/>`
+    + `<line x1="25" y1="85" x2="175" y2="85" stroke="#ffffff" stroke-width="5" stroke-dasharray="10 8" stroke-linecap="round"/>`
+    + `<line x1="25" y1="125" x2="175" y2="125" stroke="#ffffff" stroke-width="5" stroke-dasharray="10 8" stroke-linecap="round"/>`
     + close;
 }
 

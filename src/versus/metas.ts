@@ -12,20 +12,25 @@ import { punchDuelMeta } from '../versus-games/punch-duel/meta';
 import { clapDuelMeta } from '../versus-games/clap-duel/meta';
 import { balanceDuelMeta } from '../versus-games/balance-duel/meta';
 import { memoryDuelMeta } from '../versus-games/memory-duel/meta';
+import { runDuelMeta } from '../versus-games/run-duel/meta';
+import { powerDuelMeta } from '../versus-games/power-duel/meta';
+import { laserDuelMeta } from '../versus-games/laser-duel/meta';
 
 export const VERSUS_METAS = [
   fruitDuelMeta, squatTugMeta, mathDashMeta,
   starDuelMeta, simonDuelMeta, constellDuelMeta,
   abcDuelMeta, danceDuelMeta, balloonDuelMeta,
   zombieDuelMeta,
-  punchDuelMeta, clapDuelMeta, balanceDuelMeta, memoryDuelMeta
+  punchDuelMeta, clapDuelMeta, balanceDuelMeta, memoryDuelMeta,
+  runDuelMeta, powerDuelMeta, laserDuelMeta
 ];
 export type VersusId =
   | 'versus-fruit' | 'versus-tug' | 'versus-math'
   | 'versus-star' | 'versus-simon' | 'versus-duo'
   | 'versus-abc' | 'versus-dance' | 'versus-balloon'
   | 'versus-zombie'
-  | 'versus-punch' | 'versus-clap' | 'versus-balance' | 'versus-memory';
+  | 'versus-punch' | 'versus-clap' | 'versus-balance' | 'versus-memory'
+  | 'versus-run' | 'versus-power' | 'versus-laser';
 
 export function isVersusId(id: string): id is VersusId {
   return (VERSUS_METAS as Array<{ id: string }>).some((m) => m.id === id);

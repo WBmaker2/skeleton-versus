@@ -21,6 +21,9 @@ import { PunchDuelSide, SharedPunchRing } from '../versus-games/punch-duel';
 import { ClapDuelSide } from '../versus-games/clap-duel';
 import { BalanceDuelSide } from '../versus-games/balance-duel';
 import { MemoryDuelSide, SharedMemoryDeck } from '../versus-games/memory-duel';
+import { RunDuelSide } from '../versus-games/run-duel';
+import { PowerDuelSide, drawPowerOverlay } from '../versus-games/power-duel';
+import { LaserDuelSide, SharedLaserWall } from '../versus-games/laser-duel';
 
 export interface VersusSetup {
   left: VersusSideGame;
@@ -190,6 +193,43 @@ function memoryFactory(attacks: AttackBus): VersusSetup {
   return { left: l, right: r };
 }
 
+function runFactory(attacks: AttackBus): VersusSetup {
+  // 순수 거리 레이스 (공격 없음).
+  const l = new RunDuelSide('p1', attacks);
+  const r = new RunDuelSide('p2', attacks);
+  l.start();
+  r.start();
+  return { left: l, right: r };
+}
+
+function powerFactory(attacks: AttackBus): VersusSetup {
+  const rope = new TugRope();
+  const l = new PowerDuelSide('p1', rope, attacks);
+  const r = new PowerDuelSide('p2', rope, attacks);
+  l.start();
+  r.start();
+  return {
+    left: l,
+    right: r,
+    overlay: (ctx, w, h) => drawPowerOverlay(ctx, w, h, rope),
+    winner: () => rope.winner(),
+    statusHint: () => {
+      const win = rope.winner();
+      return win === 'draw' ? '줄을 당겨라!' : win === 'p1' ? 'P1이 앞서고 있어요!' : 'P2가 앞서고 있어요!';
+    }
+  };
+}
+
+function laserFactory(attacks: AttackBus): VersusSetup {
+  // 양쪽이 같은 순서로 같은 높이에 레이저를 받는다.
+  const wall = new SharedLaserWall();
+  const l = new LaserDuelSide('p1', attacks, wall);
+  const r = new LaserDuelSide('p2', attacks, wall);
+  l.start();
+  r.start();
+  return { left: l, right: r };
+}
+
 export const VERSUS_REGISTRY: Record<VersusId, VersusFactory> = {
   'versus-fruit': fruitFactory,
   'versus-tug': tugFactory,
@@ -204,5 +244,8 @@ export const VERSUS_REGISTRY: Record<VersusId, VersusFactory> = {
   'versus-punch': punchFactory,
   'versus-clap': clapFactory,
   'versus-balance': balanceFactory,
-  'versus-memory': memoryFactory
+  'versus-memory': memoryFactory,
+  'versus-run': runFactory,
+  'versus-power': powerFactory,
+  'versus-laser': laserFactory
 };
