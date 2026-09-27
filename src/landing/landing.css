@@ -32,7 +32,7 @@
 }
 
 .landing__title {
-  margin: 0 0 var(--lp-space-2);
+  margin: 0;
   max-width: 22ch;
   font-family: var(--lp-font-display);
   font-size: var(--lp-text-hero);
@@ -41,6 +41,21 @@
   letter-spacing: -0.015em;
   text-wrap: balance;
   color: var(--lp-ink);
+}
+
+/* 제목 + 1인 게임 이동 버튼 한 줄 */
+.landing__title-row {
+  display: flex;
+  align-items: center;
+  gap: var(--lp-space-4);
+  margin: 0 0 var(--lp-space-2);
+  flex-wrap: wrap;
+}
+
+.landing__solo-link {
+  margin-left: auto;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 .landing__sub {

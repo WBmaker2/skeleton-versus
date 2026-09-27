@@ -42,6 +42,13 @@ describe('landing filters', () => {
       expect(['versus-tug', 'versus-run', 'versus-power']).toContain(pick.id);
     }
   });
+  it('제목 오른쪽에 1인 게임 이동 버튼이 있다', () => {
+    renderLanding(app());
+    const link = app().querySelector<HTMLAnchorElement>('.landing__solo-link');
+    expect(link?.textContent).toContain('1인 게임으로 이동');
+    expect(link?.getAttribute('href')).toBe('https://wbmaker2.github.io/skeleton-games/');
+    expect(link?.closest('.landing__title-row')?.querySelector('.landing__title')).not.toBe(null);
+  });
   it('카드는 생성 이미지 + SVG 폴백을 함께 가진다', () => {
     renderLanding(app());
     const frames = app().querySelectorAll('#duel-grid .art-frame');

@@ -236,7 +236,8 @@ export function renderLanding(app: HTMLElement): void {
   app.innerHTML =
     `<div class="landing"><div class="landing__inner">`
     + `<header><p class="landing__kicker">카메라 1대 · 둘이 함께 · 60초 승부</p>`
-    + `<h1 class="landing__title">어떤 대결을 할까?</h1>`
+    + `<div class="landing__title-row"><h1 class="landing__title">어떤 대결을 할까?</h1>`
+    + `<a class="btn-small landing__solo-link" href="https://wbmaker2.github.io/skeleton-games/">1인 게임으로 이동</a></div>`
     + `<p class="landing__sub">왼쪽에 한 명, 오른쪽에 한 명. 카메라 앞에 나란히 서서 시작하세요 (2.5~3.5m). 혼자서도 연습할 수 있어요.</p>`
     + `<div class="landing__filters" role="group" aria-label="종목 고르기">`
     + filters.map((f) =>
