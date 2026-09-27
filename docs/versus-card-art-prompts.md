@@ -3,7 +3,7 @@
 랜딩페이지 18장 카드 이미지(`public/art/versus-*.jpg`)를 구글 플로우(Nano Banana 2)로
 만들 때 사용한 프롬프트 기록. 다시 만들거나 추가할 때 같은 스타일로 맞춘다.
 생성일: 2026-09-27 / 도구: 구글 플로우 / 크기: 1200×896 (4:3).
-(18번 두더지는 사진이 아직 없어 SVG 그림으로 표시, 사진이 생기면 이 순서대로 추가)
+(18번 두더지 포함 18장 모두 생성됨, 2026-09-27)
 
 ## 공통 스타일 (17장 모두 앞에 붙임)
 
@@ -53,7 +53,7 @@
     arms, determined smiling faces
 17. `versus-laser.jpg` — ducking under a glowing red horizontal laser beam, one
     crouching one bending, playful tension
-18. `versus-mole.jpg` — (미생성) whacking cute brown moles popping out of ground
+18. `versus-mole.jpg` — whacking cute brown moles popping out of ground
     holes and side wall holes with their hands, playful park background
 
 ## Flow 사용 메모
