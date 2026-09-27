@@ -7,7 +7,7 @@ export type AttackKind =
   | 'power-pull'  // 파워 당기기 3초 (줄다리기)
   | 'fog'         // 안개 3초 (수학·사이먼·ABC·별자리)
   | 'dark'        // 먹별 1개 (즉시 스폰, 별잡기)
-  | 'heavy'       // 무거운 풍선 3초 (풍선 낙하 가속)
+  | 'gift'        // 풍선 선물 1개 (즉시 스폰, 풍선)
   | 'rush'        // 좀비 가속 5초 (상대 좀비 1.5배)
   | 'offbeat';    // 박자 단축 5초 (댄스 박자 1.8초→1.2초)
 
@@ -22,7 +22,7 @@ const DUR: Record<AttackKind, number> = {
   'power-pull': 3000,
   fog: 3000,
   dark: 0, // 즉시 1개 스폰이라 지속 없음
-  heavy: 3000,
+  gift: 0, // 즉시 1개 스폰이라 지속 없음
   rush: 5000,
   offbeat: 5000
 };
@@ -35,11 +35,13 @@ export class AttackBus {
   onP2: Attack | null = null;
   private coolP1 = 0;
   private coolP2 = 0;
-  // 즉시 스폰용 큐 (과일 듀얼 썩은과일 · 별잡기 먹별)
+  // 즉시 스폰용 큐 (과일 듀얼 썩은과일 · 별잡기 먹별 · 풍선 선물)
   pendingRottenP1 = 0;
   pendingRottenP2 = 0;
   pendingDarkP1 = 0;
   pendingDarkP2 = 0;
+  pendingGiftP1 = 0;
+  pendingGiftP2 = 0;
 
   reset(): void {
     this.onP1 = null;
@@ -50,6 +52,8 @@ export class AttackBus {
     this.pendingRottenP2 = 0;
     this.pendingDarkP1 = 0;
     this.pendingDarkP2 = 0;
+    this.pendingGiftP1 = 0;
+    this.pendingGiftP2 = 0;
   }
 
   canAttack(side: 'p1' | 'p2'): boolean {
@@ -70,6 +74,11 @@ export class AttackBus {
     if (kind === 'dark') {
       if (target === 'p1') this.pendingDarkP1 += 1;
       else this.pendingDarkP2 += 1;
+      return true;
+    }
+    if (kind === 'gift') {
+      if (target === 'p1') this.pendingGiftP1 += 1;
+      else this.pendingGiftP2 += 1;
       return true;
     }
     const atk: Attack = { kind, from, msLeft: DUR[kind] };
@@ -110,6 +119,17 @@ export class AttackBus {
     }
     const n = this.pendingDarkP2;
     this.pendingDarkP2 = 0;
+    return n;
+  }
+
+  takeGift(side: 'p1' | 'p2'): number {
+    if (side === 'p1') {
+      const n = this.pendingGiftP1;
+      this.pendingGiftP1 = 0;
+      return n;
+    }
+    const n = this.pendingGiftP2;
+    this.pendingGiftP2 = 0;
     return n;
   }
 }

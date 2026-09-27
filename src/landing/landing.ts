@@ -72,11 +72,37 @@ function artFor(id: LandingGame['id']): string {
       + close;
   }
   // 별자리 대전: 이어진 별 3개 + 점선
+  if (id === 'versus-duo') {
+    return open
+      + `<path d="M30 120 L90 50 L160 95" fill="none" stroke="#ffffff" stroke-width="5" stroke-dasharray="10 8" stroke-linecap="round"/>`
+      + `<circle cx="30" cy="120" r="12" fill="#dfff00" stroke="#22303c" stroke-width="4"/>`
+      + `<circle cx="90" cy="50" r="12" fill="#dfff00" stroke="#22303c" stroke-width="4"/>`
+      + `<circle cx="160" cy="95" r="12" fill="#ffffff" stroke="#22303c" stroke-width="4"/>`
+      + close;
+  }
+  if (id === 'versus-abc') {
+    // ABC 대전: 큰 글자 A
+    return open
+      + `<text x="100" y="120" text-anchor="middle" font-size="96" font-weight="800" fill="#ffffff" font-family="sans-serif">A</text>`
+      + close;
+  }
+  if (id === 'versus-dance') {
+    // 댄스 대전: 춤추는 막대인간
+    return open
+      + `<circle cx="100" cy="35" r="14" fill="#ffffff" stroke="#22303c" stroke-width="5"/>`
+      + `<line x1="100" y1="50" x2="100" y2="95" stroke="#00ffff" stroke-width="7" stroke-linecap="round"/>`
+      + `<line x1="100" y1="60" x2="60" y2="35" stroke="#00ffff" stroke-width="7" stroke-linecap="round"/>`
+      + `<line x1="100" y1="60" x2="140" y2="35" stroke="#00ffff" stroke-width="7" stroke-linecap="round"/>`
+      + `<line x1="100" y1="95" x2="75" y2="135" stroke="#00ffff" stroke-width="7" stroke-linecap="round"/>`
+      + `<line x1="100" y1="95" x2="125" y2="135" stroke="#00ffff" stroke-width="7" stroke-linecap="round"/>`
+      + `<circle cx="60" cy="35" r="7" fill="#dfff00"/>`
+      + `<circle cx="140" cy="35" r="7" fill="#dfff00"/>`
+      + close;
+  }
+  // 풍선 대전: 풍선 + 줄
   return open
-    + `<path d="M30 120 L90 50 L160 95" fill="none" stroke="#ffffff" stroke-width="5" stroke-dasharray="10 8" stroke-linecap="round"/>`
-    + `<circle cx="30" cy="120" r="12" fill="#dfff00" stroke="#22303c" stroke-width="4"/>`
-    + `<circle cx="90" cy="50" r="12" fill="#dfff00" stroke="#22303c" stroke-width="4"/>`
-    + `<circle cx="160" cy="95" r="12" fill="#ffffff" stroke="#22303c" stroke-width="4"/>`
+    + `<line x1="100" y1="105" x2="100" y2="140" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>`
+    + `<ellipse cx="100" cy="70" rx="34" ry="40" fill="#ff71ce" stroke="#22303c" stroke-width="6"/>`
     + close;
 }
 

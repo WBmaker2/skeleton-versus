@@ -13,6 +13,9 @@ import { MathDashSide, SharedMathRound } from '../versus-games/math-dash';
 import { StarDuelSide, SharedStarField } from '../versus-games/star-duel';
 import { SimonDuelSide, SharedSimonRound } from '../versus-games/simon-duel';
 import { ConstellDuelSide, SharedConstellation } from '../versus-games/constellation-duel';
+import { AbcDuelSide, SharedAbcRound } from '../versus-games/abc-duel';
+import { DanceDuelSide, SharedDanceBeat } from '../versus-games/dance-duel';
+import { BalloonDuelSide, SharedBalloonSky } from '../versus-games/balloon-duel';
 
 export interface VersusSetup {
   left: VersusSideGame;
@@ -104,11 +107,44 @@ function constellFactory(attacks: AttackBus, cal: DualCalibration): VersusSetup 
   return { left: l, right: r };
 }
 
+function abcFactory(attacks: AttackBus): VersusSetup {
+  // 양쪽이 같은 글자를 만드는 공유 라운드 (선착순 +20/+10은 라운드가 판정).
+  const round = new SharedAbcRound();
+  const l = new AbcDuelSide('p1', attacks, round);
+  const r = new AbcDuelSide('p2', attacks, round);
+  l.start();
+  r.start();
+  return { left: l, right: r };
+}
+
+function danceFactory(attacks: AttackBus): VersusSetup {
+  // 양쪽이 같은 동작을 따라하는 공유 박자 (선착순 +15/+10은 라운드가 판정).
+  const beat = new SharedDanceBeat();
+  const l = new DanceDuelSide('p1', attacks, beat);
+  const r = new DanceDuelSide('p2', attacks, beat);
+  l.start();
+  r.start();
+  return { left: l, right: r };
+}
+
+function balloonFactory(attacks: AttackBus): VersusSetup {
+  // 양쪽이 같은 순서로 풍선을 받고 위치는 좌우 대칭으로 나온다.
+  const sky = new SharedBalloonSky();
+  const l = new BalloonDuelSide('p1', attacks, sky);
+  const r = new BalloonDuelSide('p2', attacks, sky);
+  l.start();
+  r.start();
+  return { left: l, right: r };
+}
+
 export const VERSUS_REGISTRY: Record<VersusId, VersusFactory> = {
   'versus-fruit': fruitFactory,
   'versus-tug': tugFactory,
   'versus-math': mathFactory,
   'versus-star': starFactory,
   'versus-simon': simonFactory,
-  'versus-duo': constellFactory
+  'versus-duo': constellFactory,
+  'versus-abc': abcFactory,
+  'versus-dance': danceFactory,
+  'versus-balloon': balloonFactory
 };

@@ -26,12 +26,13 @@ describe('AttackBus', () => {
     expect(bus.takeDark('p1')).toBe(1);
     expect(bus.takeDark('p1')).toBe(0);
   });
-  it('지속형 방해 시간을 지킨다 (heavy 3초·rush 5초·offbeat 5초)', () => {
+  it('풍선 선물은 큐에 쌓인다', () => {
     const bus = new AttackBus();
-    bus.send('heavy', 'p1');
-    expect(bus.onP2?.kind).toBe('heavy');
-    bus.tick(3000);
-    expect(bus.onP2).toBeNull();
+    bus.send('gift', 'p1');
+    expect(bus.takeGift('p2')).toBe(1);
+    expect(bus.takeGift('p2')).toBe(0);
+  });
+  it('지속형 방해 시간을 지킨다 (rush 5초·offbeat 5초)', () => {
     const bus2 = new AttackBus();
     bus2.send('rush', 'p1');
     bus2.tick(4900);

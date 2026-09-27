@@ -4,14 +4,19 @@ import { mathDashMeta } from '../versus-games/math-dash/meta';
 import { starDuelMeta } from '../versus-games/star-duel/meta';
 import { simonDuelMeta } from '../versus-games/simon-duel/meta';
 import { constellDuelMeta } from '../versus-games/constellation-duel/meta';
+import { abcDuelMeta } from '../versus-games/abc-duel/meta';
+import { danceDuelMeta } from '../versus-games/dance-duel/meta';
+import { balloonDuelMeta } from '../versus-games/balloon-duel/meta';
 
 export const VERSUS_METAS = [
   fruitDuelMeta, squatTugMeta, mathDashMeta,
-  starDuelMeta, simonDuelMeta, constellDuelMeta
+  starDuelMeta, simonDuelMeta, constellDuelMeta,
+  abcDuelMeta, danceDuelMeta, balloonDuelMeta
 ];
 export type VersusId =
   | 'versus-fruit' | 'versus-tug' | 'versus-math'
-  | 'versus-star' | 'versus-simon' | 'versus-duo';
+  | 'versus-star' | 'versus-simon' | 'versus-duo'
+  | 'versus-abc' | 'versus-dance' | 'versus-balloon';
 
 export function isVersusId(id: string): id is VersusId {
   return (VERSUS_METAS as Array<{ id: string }>).some((m) => m.id === id);

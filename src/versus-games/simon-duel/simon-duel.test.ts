@@ -50,12 +50,14 @@ describe('SimonDuelSide', () => {
     const round = new SharedSimonRound();
     const p1 = new SimonDuelSide('p1', bus, round);
     p1.start();
+    const gen0 = round.gen;
     let sawTimeout = false;
     for (let i = 0; i < 30; i++) {
       const ev = p1.tick(frame('down', 160), 100);
       if (ev.some((e) => e.type === 'timeout')) sawTimeout = true;
     }
     expect(sawTimeout).toBe(true);
-    expect(round.command).not.toBe('left');
+    // 다음 지시로 넘어감 (같은 지시가 다시 나와도 세대는 전진한다).
+    expect(round.gen).toBeGreaterThan(gen0);
   });
 });
