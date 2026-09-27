@@ -212,9 +212,11 @@ function artFor(id: LandingGame['id']): string {
 }
 
 function card(game: LandingGame): string {
+  // 생성 이미지가 있으면 사진을, 없거나 깨지면 SVG 폴백이 보인다.
+  const art = `<img src="art/${game.id}.jpg" alt="${game.name} 카드 그림" loading="lazy" onerror="this.remove()">`;
   return `<li>`
     + `<a class="game-card" style="--i: ${game.no - 1}" href="#/${game.id}">`
-    + `<div class="art-frame">${artFor(game.id)}</div>`
+    + `<div class="art-frame">${artFor(game.id)}${art}</div>`
     + `<span class="game-card__badge">대전 ${game.no} · ${game.effect}</span>`
     + `<h2 class="game-card__title">${game.name}</h2>`
     + `<p class="game-card__rule">${game.rule}</p>`

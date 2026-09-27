@@ -42,4 +42,16 @@ describe('landing filters', () => {
       expect(['versus-tug', 'versus-run', 'versus-power']).toContain(pick.id);
     }
   });
+  it('카드는 생성 이미지 + SVG 폴백을 함께 가진다', () => {
+    renderLanding(app());
+    const frames = app().querySelectorAll('#duel-grid .art-frame');
+    expect(frames).toHaveLength(17);
+    frames.forEach((f) => {
+      const img = f.querySelector('img');
+      const svg = f.querySelector('svg.art-fallback');
+      expect(img?.getAttribute('src')).toMatch(/^art\/versus-.+\.jpg$/);
+      expect(img?.getAttribute('alt')).toContain('카드 그림');
+      expect(svg).not.toBe(null);
+    });
+  });
 });
