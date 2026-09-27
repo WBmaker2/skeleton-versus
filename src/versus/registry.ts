@@ -24,6 +24,7 @@ import { MemoryDuelSide, SharedMemoryDeck } from '../versus-games/memory-duel';
 import { RunDuelSide } from '../versus-games/run-duel';
 import { PowerDuelSide, drawPowerOverlay } from '../versus-games/power-duel';
 import { LaserDuelSide, SharedLaserWall } from '../versus-games/laser-duel';
+import { MoleDuelSide, SharedMoleRing } from '../versus-games/mole-duel';
 
 export interface VersusSetup {
   left: VersusSideGame;
@@ -230,6 +231,18 @@ function laserFactory(attacks: AttackBus): VersusSetup {
   return { left: l, right: r };
 }
 
+function moleFactory(attacks: AttackBus, cal: DualCalibration): VersusSetup {
+  // 양쪽이 같은 순서로 같은 구멍에 두더지를 받고 좌우 대칭으로 나온다.
+  const ring = new SharedMoleRing();
+  const l = new MoleDuelSide('p1', attacks, ring);
+  const r = new MoleDuelSide('p2', attacks, ring);
+  l.radiusScale = cal.p1.scale;
+  r.radiusScale = cal.p2.scale;
+  l.start();
+  r.start();
+  return { left: l, right: r };
+}
+
 export const VERSUS_REGISTRY: Record<VersusId, VersusFactory> = {
   'versus-fruit': fruitFactory,
   'versus-tug': tugFactory,
@@ -247,5 +260,6 @@ export const VERSUS_REGISTRY: Record<VersusId, VersusFactory> = {
   'versus-memory': memoryFactory,
   'versus-run': runFactory,
   'versus-power': powerFactory,
-  'versus-laser': laserFactory
+  'versus-laser': laserFactory,
+  'versus-mole': moleFactory
 };

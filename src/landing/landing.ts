@@ -34,6 +34,7 @@ export const CAT_LABEL: Record<DuelCat, string> = {
 const CAT_OF: Record<VersusId, DuelCat> = {
   'versus-fruit': 'speed', 'versus-star': 'speed', 'versus-balloon': 'speed',
   'versus-zombie': 'speed', 'versus-punch': 'speed', 'versus-clap': 'speed',
+  'versus-mole': 'speed',
   'versus-tug': 'power', 'versus-run': 'power', 'versus-power': 'power',
   'versus-abc': 'accuracy', 'versus-balance': 'accuracy', 'versus-laser': 'accuracy',
   'versus-math': 'brain', 'versus-simon': 'brain', 'versus-duo': 'brain',
@@ -201,6 +202,18 @@ function artFor(id: LandingGame['id']): string {
       + `<line x1="100" y1="55" x2="100" y2="95" stroke="#ff71ce" stroke-width="8" stroke-linecap="round"/>`
       + `<path d="M100 65 L65 95 L100 110" fill="none" stroke="#ff71ce" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`
       + `<path d="M100 65 L135 95 L100 110" fill="none" stroke="#ff71ce" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>`
+      + close;
+  }
+  if (id === 'versus-mole') {
+    // 두더지 대전: 구멍 + 두더지 얼굴
+    return open
+      + `<ellipse cx="100" cy="125" rx="45" ry="14" fill="#5a3c1e"/>`
+      + `<circle cx="100" cy="85" r="32" fill="#8a5a2b" stroke="#22303c" stroke-width="6"/>`
+      + `<circle cx="88" cy="80" r="5" fill="#22303c"/>`
+      + `<circle cx="112" cy="80" r="5" fill="#22303c"/>`
+      + `<path d="M88 100 Q100 110 112 100" fill="none" stroke="#22303c" stroke-width="5" stroke-linecap="round"/>`
+      + `<circle cx="76" cy="94" r="6" fill="#ff96aa"/>`
+      + `<circle cx="124" cy="94" r="6" fill="#ff96aa"/>`
       + close;
   }
   // 레이저 대전: 가로 레이저 3줄

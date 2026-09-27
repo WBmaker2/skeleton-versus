@@ -14,21 +14,21 @@ function app(): HTMLElement {
 }
 
 describe('landing filters', () => {
-  it('전체 17종목을 보여준다', () => {
-    expect(LANDING_GAMES).toHaveLength(17);
+  it('전체 18종목을 보여준다', () => {
+    expect(LANDING_GAMES).toHaveLength(18);
     renderLanding(app());
-    expect(app().querySelectorAll('#duel-grid .game-card')).toHaveLength(17);
+    expect(app().querySelectorAll('#duel-grid .game-card')).toHaveLength(18);
   });
   it('카테고리로 고른다', () => {
-    expect(filterGames('speed')).toHaveLength(6);
+    expect(filterGames('speed')).toHaveLength(7);
     expect(filterGames('power')).toHaveLength(3);
     expect(filterGames('accuracy')).toHaveLength(3);
     expect(filterGames('brain')).toHaveLength(5);
     renderLanding(app());
     const btn = app().querySelector<HTMLButtonElement>('[data-filter="speed"]');
     btn?.click();
-    expect(app().querySelectorAll('#duel-grid .game-card')).toHaveLength(6);
-    expect(app().querySelector('#duel-count')?.textContent).toContain('6종목');
+    expect(app().querySelectorAll('#duel-grid .game-card')).toHaveLength(7);
+    expect(app().querySelector('#duel-count')?.textContent).toContain('7종목');
     expect(btn?.getAttribute('aria-pressed')).toBe('true');
   });
   it('랜덤 대전은 해시를 바꾼다', () => {
@@ -52,7 +52,7 @@ describe('landing filters', () => {
   it('카드는 생성 이미지 + SVG 폴백을 함께 가진다', () => {
     renderLanding(app());
     const frames = app().querySelectorAll('#duel-grid .art-frame');
-    expect(frames).toHaveLength(17);
+    expect(frames).toHaveLength(18);
     frames.forEach((f) => {
       const img = f.querySelector('img');
       const svg = f.querySelector('svg.art-fallback');

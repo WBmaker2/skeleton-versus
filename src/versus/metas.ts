@@ -15,6 +15,7 @@ import { memoryDuelMeta } from '../versus-games/memory-duel/meta';
 import { runDuelMeta } from '../versus-games/run-duel/meta';
 import { powerDuelMeta } from '../versus-games/power-duel/meta';
 import { laserDuelMeta } from '../versus-games/laser-duel/meta';
+import { moleDuelMeta } from '../versus-games/mole-duel/meta';
 
 export const VERSUS_METAS = [
   fruitDuelMeta, squatTugMeta, mathDashMeta,
@@ -22,7 +23,8 @@ export const VERSUS_METAS = [
   abcDuelMeta, danceDuelMeta, balloonDuelMeta,
   zombieDuelMeta,
   punchDuelMeta, clapDuelMeta, balanceDuelMeta, memoryDuelMeta,
-  runDuelMeta, powerDuelMeta, laserDuelMeta
+  runDuelMeta, powerDuelMeta, laserDuelMeta,
+  moleDuelMeta
 ];
 export type VersusId =
   | 'versus-fruit' | 'versus-tug' | 'versus-math'
@@ -30,7 +32,8 @@ export type VersusId =
   | 'versus-abc' | 'versus-dance' | 'versus-balloon'
   | 'versus-zombie'
   | 'versus-punch' | 'versus-clap' | 'versus-balance' | 'versus-memory'
-  | 'versus-run' | 'versus-power' | 'versus-laser';
+  | 'versus-run' | 'versus-power' | 'versus-laser'
+  | 'versus-mole';
 
 export function isVersusId(id: string): id is VersusId {
   return (VERSUS_METAS as Array<{ id: string }>).some((m) => m.id === id);

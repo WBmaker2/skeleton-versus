@@ -1,4 +1,4 @@
-# 4차 확장 계획 — 18번째 두더지 잡기 대전 (확정 전 설계)
+# 4차 확장 계획 — 18번째 두더지 잡기 대전 (구현 완료, 0.11.0)
 
 > 60초 · 카메라 1대 · 세로 2분할 · 왼쪽 P1 / 오른쪽 P2 · 자기 반쪽에서 손으로 두더지 잡기
 > 바닥 3곳 + 측면 3곳, 총 6개 구멍. 랜덤으로 한 마리씩 올라옴. 맞으면 표정이 바뀌며 내려감.
@@ -156,8 +156,9 @@ src/versus-games/mole-duel/
 
 ## 12. 다음 할 일
 
-- [ ] `meta·mole-ring·mole-duel·index` 구현 + 단위테스트 12개
-- [ ] `AttackKind=rush` 재사용, `VersusLoop` 축하에 `mole` 추가
-- [ ] 레지스트리·라우터·랜딩(18장) 등록 + 카드 아트 프롬프트 기록
-- [ ] `tsc → vitest → build` → UPDATELOG·CHANGELOG(0.11.0) → 커밋·푸시·배포·라이브 실측
+- [x] `meta·mole-ring·mole-duel·index` 구현 + 단위테스트 12개
+- [x] `AttackKind=rush` 재사용, `VersusLoop` 축하에 `mole` 추가
+- [x] 레지스트리·라우터·랜딩(18장) 등록 + 카드 아트 프롬프트 기록 (사진은 미생성, SVG 폴백 표시)
+- [x] `tsc → vitest → build` → UPDATELOG·CHANGELOG(0.11.0) (39파일 164테스트 통과·빌드 성공)
+- [ ] 커밋·푸시·배포·라이브 실측
 - [ ] `VERSUS-QA.md` 18종 실측 행 추가 (미실시)
