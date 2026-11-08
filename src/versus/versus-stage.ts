@@ -14,7 +14,7 @@ export function drawVersusChrome(ctx: CanvasRenderingContext2D, width: number, h
   ctx.stroke();
   ctx.setLineDash([]);
   ctx.restore();
-  // 위쪽 영역 라벨 (CSS 셀카 미러 상쇄).
+  // 위쪽 영역 라벨: 화면 왼쪽=P1, 화면 오른쪽=P2.
   drawVersusLabel(ctx, 'P1', 30, 32, 22, '#00ffff');
   drawVersusLabel(ctx, 'P2', width - 30, 32, 22, '#ffd23d');
 }

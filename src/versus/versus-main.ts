@@ -4,7 +4,7 @@ import { AttackBus } from './attack';
 import { VersusLoop, BOTH_VISIBLE_HINT } from './versus-loop';
 import { splitPoses } from './split';
 import { calibrateDual } from './dual-calibration';
-import { recordLabel, saveResult, type Winner } from './record';
+import { saveResult, type Winner } from './record';
 import type { PoseFrame } from '../pose/types';
 import { loadDualEngine } from '../pose/mediapipe-dual';
 import { VERSUS_REGISTRY } from './registry';
@@ -31,7 +31,7 @@ export async function startVersus(app: HTMLElement, id: VersusId): Promise<void>
     `<main aria-label="대전 화면">` +
     `<div class="versus-score"><div class="side p1">P1 <strong id="score1">0</strong></div>` +
     `<div class="mid"><span id="time">1:00</span></div>` +
-    `<div class="side p2">P2 <strong id="score2">0</strong></div></div>` +
+    `<div class="side p2"><strong id="score2">0</strong> P2</div></div>` +
     `<p id="attack" class="versus-attack" aria-live="polite"></p>` +
     `<div class="stage-wrap"><div class="stage-frame"><video id="cam" playsinline muted></video><canvas id="stage" width="960" height="480"></canvas></div>` +
     `<div id="calib" class="overlay overlay-float"><p id="calibmsg">둘이 함께 T자세로 서주세요 (5초)</p><p>서로 1m 이상 띄어 서세요 (중앙선을 넘으면 점수가 멈춰요)</p><button id="skip" class="btn btn-pulse">바로 대전 시작</button></div>` +
@@ -185,17 +185,57 @@ export async function startVersus(app: HTMLElement, id: VersusId): Promise<void>
         const rScore = (right as unknown as { board: { score: number } }).board.score;
         winner = lScore > rScore ? 'p1' : rScore > lScore ? 'p2' : 'draw';
       }
-      const title = winner === 'p1' ? 'P1 승리!' : winner === 'p2' ? 'P2 승리!' : '무승부!';
-      const rec = saveResult(id, winner);
+      const title = winner === 'p1' ? '🏆 P1 승리!' : winner === 'p2' ? 'P2 승리! 🏆' : '무승부!';
+      // 전적은 화면에 표시하지 않음 (저장은 유지).
+      saveResult(id, winner);
       const lScore = (left as unknown as { board: { score: number } }).board.score;
       const rScore = (right as unknown as { board: { score: number } }).board.score;
+      const p1Win = winner === 'p1';
+      const p2Win = winner === 'p2';
+      result.classList.remove('versus-result--p1', 'versus-result--p2', 'versus-result--draw');
+      result.classList.add('versus-result', `versus-result--${winner}`);
       result.innerHTML =
-        `<p><strong>${title}</strong></p>` +
-        `<p>P1 ${lScore} : ${rScore} P2</p>` +
-        `<p>${recordLabel(rec)}</p>` +
-        `<p>최저 ${loop.minFps > 0 ? loop.minFps.toFixed(0) : '-'}fps</p>` +
+        `<p class="result-title" aria-live="assertive"><strong>${title}</strong></p>` +
+        `<p class="result-score" aria-label="최종 점수 P1 ${lScore} 대 P2 ${rScore}">` +
+        `<span class="result-side result-p1${p1Win ? ' is-winner' : ''}${!p1Win && !p2Win ? '' : p2Win ? ' is-loser' : ''}">P1 <strong>${lScore}</strong></span>` +
+        `<span class="result-colon" aria-hidden="true">:</span>` +
+        `<span class="result-side result-p2${p2Win ? ' is-winner' : ''}${!p1Win && !p2Win ? '' : p1Win ? ' is-loser' : ''}"><strong>${rScore}</strong> P2</span></p>` +
+        `<p class="result-fps">최저 ${loop.minFps > 0 ? loop.minFps.toFixed(0) : '-'}fps</p>` +
         `<button type="button" id="again" class="btn btn-pulse">다시 대전</button>`;
       result.hidden = false;
+      // 이긴 쪽 영역에 축하 파티클 3초 (모션 최소화 설정이면 생략).
+      if (winner !== 'draw') {
+        try {
+          const reduce = typeof matchMedia !== 'undefined' &&
+            matchMedia('(prefers-reduced-motion: reduce)').matches;
+          if (!reduce) {
+            const party = document.createElement('div');
+            party.className = `result-party result-party--${winner}`;
+            party.setAttribute('aria-hidden', 'true');
+            const colors = winner === 'p1'
+              ? ['#00ffff', '#ffffff', '#dfff00', '#7CFC00']
+              : ['#ffd23d', '#ffffff', '#ff8c00', '#dfff00'];
+            const pieces = 70;
+            for (let i = 0; i < pieces; i++) {
+              const s = document.createElement('span');
+              s.className = 'result-confetti';
+              // 승자 반쪽 안에서만 떨어지게 좌우 범위 지정 (P1: 2~48%, P2: 52~98%).
+              const leftPct = winner === 'p1'
+                ? (2 + Math.random() * 46).toFixed(1)
+                : (52 + Math.random() * 46).toFixed(1);
+              s.style.left = `${leftPct}%`;
+              s.style.top = `${(-5 - Math.random() * 20).toFixed(1)}%`;
+              s.style.background = colors[i % colors.length];
+              s.style.animationDelay = `${(Math.random() * 0.8).toFixed(2)}s`;
+              s.style.animationDuration = `${(1.8 + Math.random() * 1.2).toFixed(2)}s`;
+              s.style.transform = `rotate(${(Math.random() * 360).toFixed(0)}deg)`;
+              party.appendChild(s);
+            }
+            result.appendChild(party);
+            setTimeout(() => party.remove(), 3000);
+          }
+        } catch { /* 파티클 실패는 결과 표시 유지 */ }
+      }
       result.querySelector('#again')?.addEventListener('click', () => {
         result.hidden = true;
         void startVersus(app, id);

@@ -1,5 +1,6 @@
 // src/versus/split.ts
 // 카메라 1대로 들어온 2명 포즈를 왼쪽(P1)/오른쪽(P2)으로 나눈다.
+// 입력 좌표는 화면 기준(어댑터가 셀카 미러)이다.
 // 코(nose) x좌표 기준. 한 명만 보이면 그쪽만 Some, 다른 쪽은 null.
 import type { PoseFrame } from '../pose/types';
 import { getByName } from '../pose/geometry';

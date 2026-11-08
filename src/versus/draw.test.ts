@@ -16,15 +16,14 @@ function stubCtx(): { ctx: CanvasRenderingContext2D; calls: Array<{ m: string; a
 }
 
 describe('drawVersusLabel', () => {
-  it('미러 상쇄 순서로 그린다 (save→translate→scale→fillText→restore)', () => {
+  it('화면 좌표로 그린다 (save→translate→fillText→restore)', () => {
     const s = stubCtx();
     drawVersusLabel(s.ctx, '7+8=?', 320, 52, 30);
     expect(s.calls.map((c) => c.m)).toEqual([
-      'save', 'translate', 'scale', 'fillText', 'restore'
+      'save', 'translate', 'fillText', 'restore'
     ]);
     expect(s.calls[1].a).toEqual([320, 52]);
-    expect(s.calls[2].a).toEqual([-1, 1]);
-    expect(s.calls[3].a).toEqual(['7+8=?', 0, 0]);
+    expect(s.calls[2].a).toEqual(['7+8=?', 0, 0]);
   });
 });
 

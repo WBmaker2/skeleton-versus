@@ -1,5 +1,6 @@
 // src/pose/mediapipe-dual.ts
 // 2인 대전용 MediaPipe 어댑터. numPoses:2로 최대 2명을 돌려준다.
+// 반환 좌표는 화면 기준(셀카 미러)으로 뒤집어준다: 화면 왼쪽=P1, 화면 오른쪽=P2.
 import { FilesetResolver, PoseLandmarker } from '@mediapipe/tasks-vision';
 import type { PoseFrame } from './types';
 
@@ -64,7 +65,7 @@ export class MediaPipeDualAdapter {
       timestamp: performance.now(),
       keypoints: pts.map((p, i) => ({
         name: landmarkName(i),
-        x: p.x * w,
+        x: (1 - p.x) * w,
         y: p.y * h,
         score: 1
       }))

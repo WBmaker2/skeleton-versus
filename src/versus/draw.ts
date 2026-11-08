@@ -1,7 +1,6 @@
 // src/versus/draw.ts
-// 대전 공용 그리기: 미러 보정 라벨 + 별 모양.
-// 스테이지는 CSS 셀카 미러(scaleX(-1))라서 글자를 그대로 그리면 거울문자가 된다.
-// 글자 중심 기준 미리 뒤집어 그려 상쇄한다 (1P drawLabel과 같은 규칙).
+// 대전 공용 그리기: 라벨 + 별 모양.
+// 캔버스는 화면 좌표계(포즈를 화면 기준으로 미러)라 별도 뒤집기 없이 그린다.
 
 export function drawVersusLabel(
   ctx: CanvasRenderingContext2D,
@@ -16,7 +15,6 @@ export function drawVersusLabel(
   ctx.font = `700 ${sizePx}px sans-serif`;
   ctx.textAlign = 'center';
   ctx.translate(x, y);
-  ctx.scale(-1, 1);
   ctx.fillText(text, 0, 0);
   ctx.restore();
 }

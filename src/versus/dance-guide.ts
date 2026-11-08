@@ -86,11 +86,6 @@ export function drawDanceGuide(
   const arms = POSES[move];
 
   ctx.save();
-  // 셀카 미러 상쇄: 패널 중심 기준 좌우반전.
-  const cx = x + w / 2;
-  ctx.translate(cx, 0);
-  ctx.scale(-1, 1);
-  ctx.translate(-cx, 0);
   ctx.strokeStyle = '#00ffff';
   ctx.lineWidth = 6;
   ctx.lineCap = 'round';
@@ -126,7 +121,6 @@ export function drawDanceGuide(
   ctx.fill();
   ctx.restore();
 
-  // 패널 하단 동작 글자. 스테이지 전체 미러를 상쇄하려고 미리 뒤집어 그린다.
   const label = DANCE_MOVE_LABEL[move];
   const lx = x + w / 2;
   const ly = y + h - 20;
@@ -135,7 +129,6 @@ export function drawDanceGuide(
   ctx.font = '700 26px sans-serif';
   ctx.textAlign = 'center';
   ctx.translate(lx, ly);
-  ctx.scale(-1, 1);
   ctx.fillText(label, 0, 0);
   ctx.restore();
 }
