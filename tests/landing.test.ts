@@ -49,6 +49,14 @@ describe('landing filters', () => {
     expect(link?.getAttribute('href')).toBe('https://wbmaker2.github.io/skeleton-games/');
     expect(link?.closest('.landing__title-row')?.querySelector('.landing__title')).not.toBe(null);
   });
+  it('카드는 연습 링크와 앉음 정보를 함께 가진다', () => {
+    renderLanding(app());
+    const prac = app().querySelectorAll('#duel-grid .game-card__practice');
+    expect(prac).toHaveLength(18);
+    expect(prac[0]?.getAttribute('href')).toContain('?practice=1');
+    expect(app().querySelector('#duel-grid .game-card__info')?.textContent).toContain('앉음');
+    expect(document.getElementById('readiness')?.closest('header')).not.toBe(null);
+  });
   it('카드는 생성 이미지 + SVG 폴백을 함께 가진다', () => {
     renderLanding(app());
     const frames = app().querySelectorAll('#duel-grid .art-frame');

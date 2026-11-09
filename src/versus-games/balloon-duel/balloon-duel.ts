@@ -1,10 +1,15 @@
 // src/versus-games/balloon-duel/balloon-duel.ts
 // 풍선 대전: 각자 자기 반쪽의 풍선을 이마로 받아 띄운다 (+5).
+// 머리를 움직여 받아야 인정 (가만히 있으면 풍선이 그냥 떨어진다).
 // 풍선이 바닥에 떨어지면 자기 콤보만 끊긴다 (상대와 무관).
 // 3콤보마다 상대에게 풍선 선물 1개 (기회이자 혼란).
 // 풍선 위치는 공유 하늘에서 같은 순서로 받고 좌우 대칭으로 나온다.
 import type { PoseFrame } from '../../pose/types';
-import { getByName } from '../../pose/geometry';
+import { getByName, shoulderWidth } from '../../pose/geometry';
+import {
+  pointSpeed, pushTimedTrail, recentTravelRatio,
+  type TimedTrailPoint, type TrackedPoint
+} from '../../versus/pose-moves';
 import type { GameEvent } from '../../game/types';
 import { ScoreBoard } from '../../game/engine';
 import type { AttackBus } from '../../versus/attack';
@@ -26,6 +31,8 @@ const MIN_SPAWN_DIST = 120;
 const CONTACT_R = 54;
 const SEPARATE_R = 72;
 const BUMP_COOLDOWN_MS = 500;
+export const BALLOON_HEAD_SPEED = 1;
+export const BALLOON_TRAVEL_RATIO = 0.25;
 
 export class BalloonDuelSide {
   board = new ScoreBoard();
@@ -33,6 +40,9 @@ export class BalloonDuelSide {
   hits = 0;
   private running = false;
   private spawnMs = 0;
+  private prevHead: TrackedPoint | null = null;
+  private headTrail: TimedTrailPoint[] = [];
+  private feedbackMs = 0;
 
   constructor(
     public side: BalloonSide,
@@ -46,6 +56,9 @@ export class BalloonDuelSide {
     this.hits = 0;
     this.balloons = [];
     this.spawnMs = 0;
+    this.prevHead = null;
+    this.headTrail = [];
+    this.feedbackMs = 0;
   }
   stop(): void {
     this.running = false;
@@ -104,6 +117,14 @@ export class BalloonDuelSide {
     for (let i = 0; i < incoming; i++) this.spawn(frame.width);
     const dt = dtMs / 1000;
     const head = this.headOf(frame);
+    const sw = shoulderWidth(frame);
+    const headSpeed = pointSpeed(this.prevHead, head, dtMs, sw);
+    if (head) pushTimedTrail(this.headTrail, head.x, head.y, dtMs);
+    const headTravel = recentTravelRatio(this.headTrail, head, sw);
+    const headMoving =
+      headSpeed >= BALLOON_HEAD_SPEED && headTravel >= BALLOON_TRAVEL_RATIO;
+    this.prevHead = head ? { x: head.x, y: head.y } : null;
+    this.feedbackMs = Math.max(0, this.feedbackMs - dtMs);
     for (const b of this.balloons) {
       if (!b.alive) continue;
       if (b.cool > 0) b.cool -= dtMs;
@@ -112,7 +133,11 @@ export class BalloonDuelSide {
       if (head) {
         const dist = Math.hypot(head.x - b.x, head.y - b.y);
         if (dist > SEPARATE_R) b.touched = false;
-        if (!b.touched && b.cool <= 0 && dist < CONTACT_R) {
+        if (!headMoving && dist < CONTACT_R && this.feedbackMs <= 0 && !b.touched && b.cool <= 0) {
+          this.feedbackMs = 1000;
+          events.push({ type: 'feedback', points: 0, label: '머리를 움직여 받아요!' });
+        }
+        if (!b.touched && b.cool <= 0 && dist < CONTACT_R && headMoving) {
           b.vy = -330;
           b.cool = BUMP_COOLDOWN_MS;
           b.touched = true;

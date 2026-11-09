@@ -5,8 +5,13 @@ import { VERSUS_METAS, type VersusId } from '../versus/metas';
 export type GameId = VersusId | 'home';
 
 export function parseHash(hash: string): GameId {
-  const id = hash.replace(/^#\//, '');
+  const raw = hash.replace(/^#\//, '');
+  const id = raw.split('?')[0];
   return (VERSUS_METAS as Array<{ id: string }>).some((m) => m.id === id)
     ? (id as VersusId)
     : 'home';
+}
+
+export function parseMode(hash: string): 'duel' | 'practice' {
+  return hash.includes('practice=1') ? 'practice' : 'duel';
 }

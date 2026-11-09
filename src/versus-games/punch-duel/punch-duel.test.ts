@@ -38,6 +38,18 @@ describe('PunchDuelSide', () => {
     expect(ev.some((e) => e.type === 'punch')).toBe(false);
     expect(side.punches).toBe(0);
   });
+  it('가만히 둔 손은 떨려도 무효다', () => {
+    const side = new PunchDuelSide('p1', new AttackBus(), new SharedPunchRing(3));
+    side.start();
+    side.target = { x: 200, y: 200, alive: true };
+    for (let i = 0; i < 5; i++) {
+      const jitter = i % 2 === 0 ? 2 : -2;
+      const ev = side.tick(
+        frame({ x: 200 + jitter, y: 200 }, { x: 100, y: 300 }), 16);
+      expect(ev.some((e) => e.type === 'punch')).toBe(false);
+    }
+    expect(side.punches).toBe(0);
+  });
   it('10연속이면 상대 타겟 축소', () => {
     const bus = new AttackBus();
     const side = new PunchDuelSide('p1', bus, new SharedPunchRing(3));

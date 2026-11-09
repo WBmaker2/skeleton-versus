@@ -78,13 +78,21 @@ export class MediaPipeDualAdapter {
   }
 }
 
+let cachedEngine: Promise<MediaPipeDualAdapter | null> | null = null;
+
 export async function loadDualEngine(): Promise<MediaPipeDualAdapter | null> {
-  try {
-    const dual = new MediaPipeDualAdapter();
-    await dual.load();
-    return dual;
-  } catch (err) {
-    console.warn('[pose-dual] load failed', err);
-    return null;
+  if (!cachedEngine) {
+    cachedEngine = (async () => {
+      try {
+        const dual = new MediaPipeDualAdapter();
+        await dual.load();
+        return dual;
+      } catch (err) {
+        console.warn('[pose-dual] load failed', err);
+        cachedEngine = null;
+        return null;
+      }
+    })();
   }
+  return cachedEngine;
 }

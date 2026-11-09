@@ -1,10 +1,14 @@
 // src/versus-games/punch-duel/punch-duel.ts
 // 펀치 대전: 자기 반쪽 타겟에 주먹을 뻗어 친다.
-// 손바닥이 타겟 안에 닿는 순간 속도가 4어깨너비/s 이상이면 펀치 인정 (+2).
+// 손바닥이 닿는 순간 속도가 4어깨너비/s 이상이고, 최근에 그만큼 이동했어야
+// 펀치 인정 (+2). 가만히 둔 손의 떨림·살짝 움직임으로는 인정하지 않는다.
 // 느리게 대면 무효. 10연속 펀치마다 상대 타겟 축소 0.7배 5초.
 import type { PoseFrame } from '../../pose/types';
 import { palmOf, shoulderWidth } from '../../pose/geometry';
-import { pointSpeed, type TrackedPoint } from '../../versus/pose-moves';
+import {
+  pointSpeed, pushTimedTrail, recentTravelRatio,
+  type TimedTrailPoint, type TrackedPoint
+} from '../../versus/pose-moves';
 import type { GameEvent } from '../../game/types';
 import { ScoreBoard } from '../../game/engine';
 import type { AttackBus } from '../../versus/attack';
@@ -18,6 +22,7 @@ export interface PunchTarget {
 }
 
 export const PUNCH_SPEED = 4; // 어깨너비/s
+export const PUNCH_TRAVEL_RATIO = 0.3;
 export const PUNCH_R = 48;
 export const PUNCH_COOL_MS = 300;
 
@@ -29,6 +34,8 @@ export class PunchDuelSide {
   private running = false;
   private coolMs = 0;
   private prev: { left: TrackedPoint | null; right: TrackedPoint | null } = { left: null, right: null };
+  private trails: { left: TimedTrailPoint[]; right: TimedTrailPoint[] } = { left: [], right: [] };
+  private feedbackMs = 0;
 
   constructor(
     public side: PunchSide,
@@ -42,6 +49,8 @@ export class PunchDuelSide {
     this.punches = 0;
     this.coolMs = 0;
     this.prev = { left: null, right: null };
+    this.trails = { left: [], right: [] };
+    this.feedbackMs = 0;
     this.respawn(640, 480);
   }
   stop(): void {
@@ -100,17 +109,28 @@ export class PunchDuelSide {
     };
     const r = PUNCH_R * this.radiusScale * (this.tinied ? 0.7 : 1);
     const events: GameEvent[] = [];
+    this.feedbackMs = Math.max(0, this.feedbackMs - dtMs);
     (['left', 'right'] as const).forEach((hand) => {
       const cur = palms[hand];
       const speed = pointSpeed(this.prev[hand], cur, dtMs, sw);
+      if (cur) pushTimedTrail(this.trails[hand], cur.x, cur.y, dtMs);
+      const travel = recentTravelRatio(this.trails[hand], cur, sw);
       this.prev[hand] = cur ? { x: cur.x, y: cur.y } : null;
       if (this.coolMs > 0 || !cur || !this.target.alive) return;
       const dist = Math.hypot(cur.x - this.target.x, cur.y - this.target.y);
-      if (dist >= r || speed < PUNCH_SPEED) return;
+      if (dist >= r) return;
+      if (speed < PUNCH_SPEED || travel < PUNCH_TRAVEL_RATIO) {
+        if (this.feedbackMs <= 0) {
+          this.feedbackMs = 1000;
+          events.push({ type: 'feedback', points: 0, label: '휙 치세요!' });
+        }
+        return;
+      }
       // 펀치 적중!
       this.target.alive = false;
       this.punches += 1;
       this.coolMs = PUNCH_COOL_MS;
+      this.trails[hand] = [];
       this.board.comboHit();
       this.board.add(2);
       this.respawn(frame.width, frame.height);

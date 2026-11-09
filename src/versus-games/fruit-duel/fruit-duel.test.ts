@@ -19,14 +19,30 @@ function duelSide(side: 'p1' | 'p2', seed = 42): FruitDuelSide {
   return new FruitDuelSide(side, new AttackBus(), new SharedFruitPattern(seed));
 }
 
+function swipeAt(side: FruitDuelSide, x: number, y: number): unknown[] {
+  side.tick(frameWithPalms(x - 100, y), 16);
+  return side.tick(frameWithPalms(x, y), 16);
+}
+
 describe('FruitDuelSide', () => {
-  it('과일을 베면 +10점', () => {
+  it('과일을 휘둘러 베면 +10점', () => {
     const side = duelSide('p1');
     side.start();
     side.fruits = [{ x: 100, y: 100, vx: 0, vy: 0, kind: 'fruit', alive: true }];
-    const ev = side.tick(frameWithPalms(100, 100), 16);
+    const ev = swipeAt(side, 100, 100) as Array<{ type: string }>;
     expect(side.board.score).toBeGreaterThan(0);
     expect(ev.some((e) => e.type === 'slice')).toBe(true);
+  });
+  it('가만히 둔 손으로 받으면 무효다', () => {
+    const side = duelSide('p1');
+    side.start();
+    side.fruits = [{ x: 100, y: 100, vx: 0, vy: 0, kind: 'fruit', alive: true }];
+    for (let i = 0; i < 5; i++) {
+      const ev = side.tick(frameWithPalms(100, 100), 16);
+      expect(ev.some((e) => e.type === 'slice')).toBe(false);
+    }
+    expect(side.board.score).toBe(0);
+    expect(side.fruits[0].alive).toBe(true);
   });
   it('3콤보마다 썩은 과일이 상대에게 간다', () => {
     const bus = new AttackBus();
@@ -35,16 +51,23 @@ describe('FruitDuelSide', () => {
     p1.start();
     for (let i = 0; i < 3; i++) {
       p1.fruits = [{ x: 100, y: 100, vx: 0, vy: 0, kind: 'fruit', alive: true }];
-      p1.tick(frameWithPalms(100, 100), 16);
+      swipeAt(p1, 100, 100);
     }
     expect(bus.pendingRottenP2).toBe(1);
   });
-  it('썩은 과일을 베면 -5점', () => {
+  it('썩은 과일을 휘둘러 베면 -5점', () => {
     const side = duelSide('p2');
     side.start();
     side.fruits = [{ x: 500, y: 100, vx: 0, vy: 0, kind: 'rotten', alive: true }];
-    side.tick(frameWithPalms(500, 100), 16);
+    swipeAt(side, 500, 100);
     expect(side.board.score).toBe(-5);
+  });
+  it('가만히 둔 손으로 썩은 과일을 받으면 무효다', () => {
+    const side = duelSide('p2');
+    side.start();
+    side.fruits = [{ x: 500, y: 100, vx: 0, vy: 0, kind: 'rotten', alive: true }];
+    for (let i = 0; i < 3; i++) side.tick(frameWithPalms(500, 100), 16);
+    expect(side.board.score).toBe(0);
   });
 });
 

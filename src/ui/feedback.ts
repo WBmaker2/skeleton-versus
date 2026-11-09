@@ -1,7 +1,26 @@
 // src/ui/feedback.ts
 let ctx: AudioContext | null = null;
 
+const SOUND_KEY = 'skelversus:sound';
+
+export function isSoundOn(): boolean {
+  try {
+    return localStorage.getItem(SOUND_KEY) !== 'off';
+  } catch {
+    return true;
+  }
+}
+
+export function setSoundOn(on: boolean): void {
+  try {
+    localStorage.setItem(SOUND_KEY, on ? 'on' : 'off');
+  } catch {
+    // 저장 실패는 무시
+  }
+}
+
 export function beep(kind: 'hit' | 'miss' | 'win'): void {
+  if (!isSoundOn()) return;
   try {
     ctx ??= new AudioContext();
     void ctx.resume();

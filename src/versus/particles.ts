@@ -12,10 +12,23 @@ export const OUCH_COLORS = ['#ff3b30', '#8a8f98'];
 
 export function reducedMotion(): boolean {
   try {
+    if (localStorage.getItem('skelversus:motion') === 'reduced') return true;
+  } catch {
+    // 무시
+  }
+  try {
     return typeof matchMedia !== 'undefined' &&
       matchMedia('(prefers-reduced-motion: reduce)').matches;
   } catch {
     return false;
+  }
+}
+
+export function setReducedMotion(on: boolean): void {
+  try {
+    localStorage.setItem('skelversus:motion', on ? 'reduced' : 'full');
+  } catch {
+    // 무시
   }
 }
 

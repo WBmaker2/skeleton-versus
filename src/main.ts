@@ -1,6 +1,6 @@
-import { parseHash } from './ui/router';
+import { parseHash, parseMode } from './ui/router';
 import { renderLanding } from './landing/landing';
-import { startVersus } from './versus/versus-main';
+import { startVersus, stopActiveVersus } from './versus/versus-main';
 import { isVersusId } from './versus/metas';
 import './ui/game.css';
 
@@ -10,6 +10,7 @@ export function boot(): void {
   const app = document.getElementById('app');
   if (!app) return;
   const render = () => {
+    stopActiveVersus();
     const oldVideo = document.getElementById('cam') as HTMLVideoElement | null;
     const oldStream = oldVideo?.srcObject as MediaStream | null;
     if (oldStream && typeof oldStream.getTracks === 'function') oldStream.getTracks().forEach((t) => t.stop());
@@ -20,7 +21,7 @@ export function boot(): void {
       return;
     }
     if (isVersusId(hash)) {
-      void startVersus(app, hash);
+      void startVersus(app, hash, parseMode(window.location.hash));
       return;
     }
   };

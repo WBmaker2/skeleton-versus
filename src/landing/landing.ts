@@ -10,7 +10,11 @@ export interface LandingGame {
   name: string;
   rule: string;
   effect: string;
+  seated: boolean;
+  hasAttack: boolean;
 }
+
+const STANDING_ONLY = new Set<string>(['versus-tug', 'versus-balance', 'versus-run']);
 
 // 대전 전종목을 보여준다 (새 종목은 VERSUS_METAS에만 추가하면 카드가 따라온다).
 export const LANDING_GAMES: LandingGame[] = VERSUS_METAS.map((m) => ({
@@ -18,7 +22,9 @@ export const LANDING_GAMES: LandingGame[] = VERSUS_METAS.map((m) => ({
   no: m.no,
   name: m.name,
   rule: m.rule,
-  effect: m.effect
+  effect: m.effect,
+  seated: !STANDING_ONLY.has(m.id),
+  hasAttack: m.id !== 'versus-run'
 }));
 
 // 대전 고르기 화면: 카테고리 필터 + 랜덤 대전.
@@ -227,14 +233,37 @@ function artFor(id: LandingGame['id']): string {
 function card(game: LandingGame): string {
   // 생성 이미지가 있으면 사진을, 없거나 깨지면 SVG 폴백이 보인다.
   const art = `<img src="art/${game.id}.jpg" alt="${game.name} 카드 그림" loading="lazy" onerror="this.remove()">`;
+  const posture = game.seated ? '앉음 가능' : '서기 필요';
+  const attack = game.hasAttack ? '방해 있음' : '방해 없음';
+  const rec = loadRecordSafe(game.id);
+  const recText = rec.p1 + rec.p2 + rec.draw > 0
+    ? `<span class="game-card__rec">P1 ${rec.p1}승 · P2 ${rec.p2}승</span>` : '';
   return `<li>`
     + `<a class="game-card" style="--i: ${game.no - 1}" href="#/${game.id}">`
     + `<div class="art-frame">${artFor(game.id)}${art}</div>`
     + `<span class="game-card__badge">대전 ${game.no} · ${game.effect}</span>`
     + `<h2 class="game-card__title">${game.name}</h2>`
     + `<p class="game-card__rule">${game.rule}</p>`
+    + `<span class="game-card__info">${posture} · ${attack}</span>`
+    + recText
     + `<span class="game-card__cta">대전 시작</span>`
-    + `</a></li>`;
+    + `</a>`
+    + `<a class="btn-small game-card__practice" href="#/${game.id}?practice=1">연습 15초</a></li>`;
+}
+
+function loadRecordSafe(id: VersusId): { p1: number; p2: number; draw: number } {
+  try {
+    const raw = localStorage.getItem(`skelversus:record:${id}`);
+    if (!raw) return { p1: 0, p2: 0, draw: 0 };
+    const parsed = JSON.parse(raw) as Partial<{ p1: number; p2: number; draw: number }>;
+    return {
+      p1: Math.max(0, Math.floor(Number(parsed.p1) || 0)),
+      p2: Math.max(0, Math.floor(Number(parsed.p2) || 0)),
+      draw: Math.max(0, Math.floor(Number(parsed.draw) || 0))
+    };
+  } catch {
+    return { p1: 0, p2: 0, draw: 0 };
+  }
 }
 
 export function renderLanding(app: HTMLElement): void {
@@ -252,6 +281,7 @@ export function renderLanding(app: HTMLElement): void {
     + `<div class="landing__title-row"><h1 class="landing__title">어떤 대결을 할까?</h1>`
     + `<a class="btn-small landing__solo-link" href="https://wbmaker2.github.io/skeleton-games/">1인 게임으로 이동</a></div>`
     + `<p class="landing__sub">왼쪽에 한 명, 오른쪽에 한 명. 카메라 앞에 나란히 서서 시작하세요 (2.5~3.5m). 혼자서도 연습할 수 있어요.</p>`
+    + `<p class="landing__readiness" id="readiness">인식 모델 확인 중…</p>`
     + `<div class="landing__filters" role="group" aria-label="종목 고르기">`
     + filters.map((f) =>
       `<button type="button" class="btn-small landing__filter" data-filter="${f.id}" aria-pressed="${f.id === 'all'}">${f.label}</button>`
@@ -261,8 +291,7 @@ export function renderLanding(app: HTMLElement): void {
     + `<main aria-label="대전 목록"><ul class="landing__grid" id="duel-grid">`
     + `</ul><p class="landing__count" id="duel-count" aria-live="polite"></p></main>`
     + `<footer><p class="landing__foot">TIP: 둘이 다 화면에 보여야 점수가 올라가요. 한 명만 보여도 내 점수는 올라가니 혼자 연습해 보세요. `
-    + `<button type="button" id="updatelog" class="btn-small">업데이트 내역</button></p>`
-    + `<p class="landing__readiness" id="readiness">인식 모델 확인 중…</p></footer>`
+    + `<button type="button" id="updatelog" class="btn-small">업데이트 내역</button></p></footer>`
     + `</div></div>`;
   let current: CatFilter = 'all';
   const paint = (): void => {

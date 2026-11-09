@@ -101,3 +101,38 @@ export function pointSpeed(
   if (!prev || !cur || dtMs <= 0 || shoulderWidth < 1) return 0;
   return Math.hypot(cur.x - prev.x, cur.y - prev.y) / shoulderWidth / (dtMs / 1000);
 }
+
+// 타격 판정용 최근 궤적 (500ms 창). 손을 가만히 둔 떨림(수 px)은 거리로
+// 걸러내고, 휘두른 경우만 인정한다.
+export interface TimedTrailPoint extends TrackedPoint {
+  ageMs: number;
+}
+
+export const SWIPE_TRAIL_MS = 500;
+
+export function pushTimedTrail(
+  trail: TimedTrailPoint[],
+  x: number,
+  y: number,
+  dtMs: number,
+  windowMs: number = SWIPE_TRAIL_MS
+): void {
+  for (const p of trail) p.ageMs += dtMs;
+  trail.push({ x, y, ageMs: 0 });
+  while (trail.length > 0 && trail[0].ageMs > windowMs) trail.shift();
+  if (trail.length > 30) trail.splice(0, trail.length - 30);
+}
+
+export function recentTravelRatio(
+  trail: readonly TimedTrailPoint[],
+  cur: TrackedPoint | null,
+  sw: number
+): number {
+  if (!cur || sw < 1 || trail.length === 0) return 0;
+  let max = 0;
+  for (const p of trail) {
+    const d = Math.hypot(cur.x - p.x, cur.y - p.y);
+    if (d > max) max = d;
+  }
+  return max / sw;
+}

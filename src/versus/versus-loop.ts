@@ -139,6 +139,7 @@ export class VersusLoop {
         try {
           frames = await this.opts.engine.estimateDual(video);
         } catch {
+          this.opts.onHint?.('인식 지연 중… 잠시 멈췄어요');
           return;
         }
         this.lastFrames = frames;

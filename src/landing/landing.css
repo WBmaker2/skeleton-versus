@@ -70,7 +70,7 @@
 .landing .btn-small {
   display: inline-flex;
   align-items: center;
-  min-height: 40px;
+  min-height: 48px;
   padding: 0 var(--lp-space-4);
   font-family: var(--lp-font-body);
   font-size: var(--lp-text-badge);
@@ -188,7 +188,7 @@
 
 .game-card__badge {
   margin: 0 0 var(--lp-space-2);
-  font-size: var(--lp-text-label);
+  font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -204,14 +204,33 @@
 }
 
 .game-card__rule {
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  margin: 0 0 var(--lp-space-3);
+  margin: 0 0 var(--lp-space-2);
   font-size: var(--lp-text-body);
   line-height: 1.6;
   color: var(--lp-ink-soft);
+}
+
+.game-card__info {
+  display: block;
+  margin: 0 0 var(--lp-space-2);
+  font-size: var(--lp-text-badge);
+  font-weight: 600;
+  color: var(--lp-leaf-deep);
+}
+
+.game-card__rec {
+  display: block;
+  margin: 0 0 var(--lp-space-2);
+  font-size: var(--lp-text-badge);
+  font-weight: 700;
+  color: var(--lp-ink);
+}
+
+.game-card__practice {
+  display: inline-flex;
+  margin-top: var(--lp-space-2);
+  color: var(--lp-ink-soft);
+  text-decoration: none;
 }
 
 .game-card__cta {

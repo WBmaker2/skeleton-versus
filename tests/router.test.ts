@@ -1,6 +1,6 @@
 // tests/router.test.ts
 import { describe, expect, it } from 'vitest';
-import { parseHash } from '../src/ui/router';
+import { parseHash, parseMode } from '../src/ui/router';
 
 describe('parseHash', () => {
   it('maps #/versus-fruit to versus-fruit', () => {
@@ -18,5 +18,10 @@ describe('parseHash', () => {
   });
   it('maps empty to home', () => {
     expect(parseHash('')).toBe('home');
+  });
+  it('maps practice query to the same game', () => {
+    expect(parseHash('#/versus-fruit?practice=1')).toBe('versus-fruit');
+    expect(parseMode('#/versus-fruit?practice=1')).toBe('practice');
+    expect(parseMode('#/versus-fruit')).toBe('duel');
   });
 });

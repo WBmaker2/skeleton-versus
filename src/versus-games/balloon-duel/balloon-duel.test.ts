@@ -15,15 +15,30 @@ function headFrame(cx: number): PoseFrame {
   };
 }
 
+function bumpAt(side: BalloonDuelSide, x: number, y: number): unknown[] {
+  side.tick(headFrame(x - 100), 16);
+  return side.tick(headFrame(x), 16);
+}
+
 describe('BalloonDuelSide', () => {
-  it('이마로 받으면 +5점', () => {
+  it('이마를 움직여 받으면 +5점', () => {
     const side = new BalloonDuelSide('p1', new AttackBus(), new SharedBalloonSky(3));
     side.start();
     // 머리 판정점(320, 65)에 풍선을 둔다
     side.balloons = [{ x: 320, y: 65, vy: 0, alive: true, cool: 0, touched: false }];
-    const ev = side.tick(headFrame(320), 16);
+    const ev = bumpAt(side, 320, 65) as Array<{ type: string }>;
     expect(ev.some((e) => e.type === 'bump')).toBe(true);
     expect(side.board.score).toBeGreaterThan(0);
+  });
+  it('가만히 둔 머리는 받지 못한다', () => {
+    const side = new BalloonDuelSide('p1', new AttackBus(), new SharedBalloonSky(3));
+    side.start();
+    side.balloons = [{ x: 160, y: 65, vy: 0, alive: true, cool: 0, touched: false }];
+    for (let i = 0; i < 5; i++) {
+      const ev = side.tick(headFrame(160), 16);
+      expect(ev.some((e) => e.type === 'bump')).toBe(false);
+    }
+    expect(side.board.score).toBe(0);
   });
   it('떨어지면 자기 콤보만 끊긴다', () => {
     const bus = new AttackBus();
@@ -42,7 +57,7 @@ describe('BalloonDuelSide', () => {
     p1.start();
     for (let i = 0; i < 3; i++) {
       p1.balloons = [{ x: 160, y: 65, vy: 0, alive: true, cool: 0, touched: false }];
-      p1.tick(headFrame(160), 16);
+      bumpAt(p1, 160, 65);
     }
     expect(bus.pendingGiftP2).toBe(1);
   });

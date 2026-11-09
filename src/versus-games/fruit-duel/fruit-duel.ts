@@ -1,12 +1,20 @@
 // src/versus-games/fruit-duel/fruit-duel.ts
 // 과일 베기 대전: 좌우 각자 과일을 벤다. 3콤보마다 상대에게 썩은 과일 1개.
 // 폭탄 -15점, 썩은 과일 -5점. 60초 합산 점수 승부.
+// 가만히 둔 손으로 받으면 무효, 휘둘러 베야만 인정한다.
 import type { PoseFrame } from '../../pose/types';
-import { palmOf } from '../../pose/geometry';
+import { palmOf, shoulderWidth } from '../../pose/geometry';
+import {
+  pointSpeed, pushTimedTrail, recentTravelRatio,
+  type TimedTrailPoint, type TrackedPoint
+} from '../../versus/pose-moves';
 import type { GameEvent } from '../../game/types';
 import { ScoreBoard } from '../../game/engine';
 import type { AttackBus } from '../../versus/attack';
 import type { SharedFruitPattern } from './spawner';
+
+export const FRUIT_SWIPE_SPEED = 2.5;
+export const FRUIT_TRAVEL_RATIO = 0.3;
 
 export type DuelFruitKind = 'fruit' | 'bomb' | 'rotten';
 export interface DuelFruit {
@@ -23,6 +31,9 @@ export class FruitDuelSide {
   private running = false;
   private spawnMs = 0;
   private spawnCount = 0;
+  private prev: { left: TrackedPoint | null; right: TrackedPoint | null } = { left: null, right: null };
+  private trails: { left: TimedTrailPoint[]; right: TimedTrailPoint[] } = { left: [], right: [] };
+  private feedbackMs = 0;
 
   constructor(
     public side: DuelSide,
@@ -37,6 +48,9 @@ export class FruitDuelSide {
     this.spawnMs = 0;
     this.slices = 0;
     this.spawnCount = 0;
+    this.prev = { left: null, right: null };
+    this.trails = { left: [], right: [] };
+    this.feedbackMs = 0;
   }
   stop(): void {
     this.running = false;
@@ -106,13 +120,46 @@ export class FruitDuelSide {
       f.y += f.vy * dt;
       f.vy += 700 * dt;
     }
-    const palms = [palmOf(frame, 'left'), palmOf(frame, 'right')].filter(
-      (w): w is { x: number; y: number } => w !== null
-    );
+    const sw = shoulderWidth(frame);
+    const palms = {
+      left: palmOf(frame, 'left'),
+      right: palmOf(frame, 'right')
+    };
+    const swinging: { left: boolean; right: boolean } = { left: false, right: false };
+    (['left', 'right'] as const).forEach((hand) => {
+      const cur = palms[hand];
+      const speed = pointSpeed(this.prev[hand], cur, dtMs, sw);
+      if (cur) pushTimedTrail(this.trails[hand], cur.x, cur.y, dtMs);
+      const travel = recentTravelRatio(this.trails[hand], cur, sw);
+      swinging[hand] =
+        speed >= FRUIT_SWIPE_SPEED && travel >= FRUIT_TRAVEL_RATIO;
+      this.prev[hand] = cur ? { x: cur.x, y: cur.y } : null;
+    });
+    this.feedbackMs = Math.max(0, this.feedbackMs - dtMs);
     const events: GameEvent[] = [];
     for (const f of this.fruits) {
       if (!f.alive) continue;
-      const hit = palms.some((w) => Math.hypot(w.x - f.x, w.y - f.y) < 48 * this.radiusScale);
+      const contact = (['left', 'right'] as const).some((hand) => {
+        const w = palms[hand];
+        if (!w) return false;
+        return Math.hypot(w.x - f.x, w.y - f.y) < 48 * this.radiusScale;
+      });
+      if (contact && this.feedbackMs <= 0) {
+        const hit = (['left', 'right'] as const).some((hand) => {
+          const w = palms[hand];
+          return !!w && swinging[hand] &&
+            Math.hypot(w.x - f.x, w.y - f.y) < 48 * this.radiusScale;
+        });
+        if (!hit) {
+          this.feedbackMs = 800;
+          events.push({ type: 'feedback', points: 0, label: '휘둘러 베야 인정!' });
+        }
+      }
+      const hit = (['left', 'right'] as const).some((hand) => {
+        const w = palms[hand];
+        if (!w || !swinging[hand]) return false;
+        return Math.hypot(w.x - f.x, w.y - f.y) < 48 * this.radiusScale;
+      });
       if (!hit) continue;
       f.alive = false;
       if (f.kind === 'fruit') {
